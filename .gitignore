@@ -13,3 +13,10 @@
 *.vrb
 *.xdv
 *.pdf
+app/node_modules/
+app/dist/
+app/*.tsbuildinfo
+app/src-tauri/target/
+templates/nju/.nju-beamer/
+output/
+.DS_Store

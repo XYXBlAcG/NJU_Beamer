@@ -1,16 +1,16 @@
 \documentclass{beamer}
-\usepackage{ctex, hyperref}
-\usepackage[T1]{fontenc}
+\usepackage[fontset=fandol]{ctex}
+\usepackage{hyperref}
 
 % other packages
 \usepackage{latexsym,amsmath,xcolor,multicol,booktabs,calligra}
 \usepackage{graphicx,pstricks,listings,stackengine}
 
-\author{一逖}
-\title{NJU Beamer Theme\thanks{本模版改造自清华大学 Beamer 模版 \url{https://github.com/YangLaTeX/thubeamer}}}
-\subtitle{毕业设计开题报告}
-\institute{南京大学信息管理学院}
-\date{2026年4月2日}
+\author{谢宇轩}
+\title{标题}
+\subtitle{副标题}
+\institute{南京大学匡亚明学院}
+\date{\today}
 \usepackage{NJU}
 
 % defs
@@ -131,7 +131,7 @@
 
 \begin{frame}{图形与分栏}
     % Beamer graphics example.
-    \begin{minipage}[c]{0.3\linewidth}
+    \begin{minipage}[c]{0.42\linewidth}
         \psset{unit=0.8cm}
         \begin{pspicture}(-1.75,-3)(3.25,4)
             \psline[linewidth=0.25pt](0,0)(0,4)
@@ -154,13 +154,13 @@
             \psarc{->}{2.1}{90}{112.5}
             \rput[bl](.1,.01){C}
         \end{pspicture}
-    \end{minipage}\hspace{1cm}
-    \begin{minipage}{0.5\linewidth}
+    \end{minipage}\hfill
+    \begin{minipage}{0.42\linewidth}
         \medskip
         %\hspace{2cm}
         \begin{figure}[h]
             \centering
-            \includegraphics[height=.4\textheight]{pic/dtmf.pdf}
+            \includegraphics[width=\linewidth,height=.4\textheight,keepaspectratio]{pic/NJU_Logo.png}
         \end{figure}
     \end{minipage}
 \end{frame}
