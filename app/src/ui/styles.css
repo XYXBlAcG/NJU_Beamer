@@ -83,8 +83,8 @@ button { color: inherit; }
 .preview-page canvas { display: block; max-width: 100%; background: white; box-shadow: 0 12px 36px #2f1f2d30; image-rendering: auto; }
 .preview-page figcaption { margin-top: 7px; color: #787177; text-align: center; font-size: 11px; }
 .native-pdf { display: block; width: 100%; height: calc(100vh - 150px); border: 0; border-radius: 8px; background: #fff; box-shadow: 0 12px 36px #2f1f2d30; }
-.pdf-presentation { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: hidden; background: #050505; cursor: none; }
-.pdf-presentation .presentation-page { width: min(100vw, 133.333vh); outline: 0; cursor: none; }
+.pdf-presentation { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: hidden; background: #050505; }
+.pdf-presentation .presentation-page { width: min(100vw, 133.333vh); outline: 0; }
 .pdf-presentation .presentation-page canvas { width: 100%; box-shadow: none; }
 .presentation-status { position: fixed; right: 18px; bottom: 14px; display: flex; align-items: center; gap: 9px; border-radius: 999px; padding: 6px 8px 6px 12px; color: #fff; background: #0009; cursor: default; font-size: 11px; }
 .presentation-status button { border: 0; border-radius: 999px; padding: 5px 9px; color: #fff; background: #ffffff24; cursor: pointer; }

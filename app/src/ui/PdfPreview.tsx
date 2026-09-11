@@ -13,6 +13,11 @@ type Props = {
 export const pdfPageNumbers = (pageCount: number) => Array.from({ length: pageCount }, (_, index) => index + 1);
 export const clampPdfPage = (page: number, pageCount: number) => Math.min(Math.max(Math.trunc(page) || 1, 1), Math.max(pageCount, 1));
 export const nativePdfUrl = (url: string, page: number) => `${url}#page=${page}&view=FitH`;
+export const presentationPointerStyle = { cursor: "default" } as const;
+
+export function NativePdfPreview({ url, page }: { url: string; page: number }) {
+  return <iframe className="native-pdf" title="系统 PDF 预览" src={nativePdfUrl(url, page)} />;
+}
 
 function PdfPage({ document, number, selected = false, presentation = false, onSelect }: {
   document: pdfjs.PDFDocumentProxy;
@@ -182,8 +187,8 @@ export function PdfPreview({ data }: Props) {
         </div>
         {mode === "grid"
           ? <div className="preview-pages">{pdfPageNumbers(pageCount).map((number) => <PdfPage key={number} document={pdfDocument} number={number} selected={number === currentPage} onSelect={() => setCurrentPage(number)} />)}</div>
-          : <embed className="native-pdf" src={nativePdfUrl(url, currentPage)} type="application/pdf" />}
-        {presenting && <div className="pdf-presentation" onClick={() => goToPage(currentPage + 1)}>
+          : <NativePdfPreview url={url} page={currentPage} />}
+        {presenting && <div className="pdf-presentation" style={presentationPointerStyle} onClick={() => goToPage(currentPage + 1)}>
           <PdfPage document={pdfDocument} number={currentPage} presentation />
           <div className="presentation-status">{currentPage} / {pageCount}<button onClick={(event) => { event.stopPropagation(); stopPresentation(); }}>退出播放</button></div>
         </div>}

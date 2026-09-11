@@ -1,6 +1,6 @@
 [package]
 name = "nju-beamer-editor"
-version = "0.1.0"
+version = "0.1.1"
 description = "A visual XeTeX Beamer editor"
 authors = ["NJU Beamer contributors"]
 edition = "2021"
