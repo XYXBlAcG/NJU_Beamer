@@ -13,6 +13,7 @@
 *.vrb
 *.xdv
 *.pdf
+!release/tutor.pdf
 app/node_modules/
 app/dist/
 app/*.tsbuildinfo

@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
   workflow_dispatch:
 
 permissions:
@@ -58,3 +60,30 @@ jobs:
           path: app/NJU-Beamer-macOS.zip
           if-no-files-found: error
           retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download macOS package
+        uses: actions/download-artifact@v4
+        with:
+          name: NJU-Beamer-macOS-${{ github.sha }}
+          path: release-assets
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME"; then
+            gh release upload "$GITHUB_REF_NAME" release-assets/NJU-Beamer-macOS.zip release/tutor.pdf --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release-assets/NJU-Beamer-macOS.zip release/tutor.pdf --verify-tag --generate-notes --title "NJU Beamer $GITHUB_REF_NAME"
+          fi

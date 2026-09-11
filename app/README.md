@@ -35,4 +35,4 @@ macOS 应用包将 `.njub` 声明为 ZIP 文稿类型。安装或首次启动应
 
 打包命令为 `npm run tauri build`，应用包输出到 `src-tauri/target/release/bundle/macos/NJU Beamer.app`。发布构建从 App Resources 读取 NJU 模板，XeLaTeX 中间文件写入系统应用缓存目录。
 
-macOS 自动构建入口为 [`.github/workflows/build-macos.yml`](../.github/workflows/build-macos.yml)。向 `main` 推送或手动触发工作流后，会构建 Intel 与 Apple Silicon 通用 `.app`，以 ZIP 形式上传为 Actions artifact；工作流不生成 Windows 产物，也不包含 Apple Developer ID 签名或公证。
+macOS 自动构建入口为 [`.github/workflows/build-macos.yml`](../.github/workflows/build-macos.yml)。向 `main` 推送或手动触发工作流后，会构建 Intel 与 Apple Silicon 通用 `.app`，以 ZIP 形式上传为 Actions artifact；推送 `v*` 标签还会创建或更新同名 GitHub Release，并同时发布应用 ZIP 与 [`release/tutor.pdf`](../release/tutor.pdf)。工作流不生成 Windows 产物，也不包含 Apple Developer ID 签名或公证。
