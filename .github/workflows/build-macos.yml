@@ -1,0 +1,60 @@
+name: Build macOS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Set up Rust targets
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: app
+        run: npm test
+
+      - name: Build universal macOS app
+        working-directory: app
+        run: npm run tauri -- build --target universal-apple-darwin
+
+      - name: Archive app bundle
+        working-directory: app
+        run: ditto -c -k --sequesterRsrc --keepParent "src-tauri/target/universal-apple-darwin/release/bundle/macos/NJU Beamer.app" NJU-Beamer-macOS.zip
+
+      - name: Upload macOS package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NJU-Beamer-macOS-${{ github.sha }}
+          path: app/NJU-Beamer-macOS.zip
+          if-no-files-found: error
+          retention-days: 14

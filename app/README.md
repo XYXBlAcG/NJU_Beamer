@@ -34,3 +34,5 @@ Rust 编译服务位于 `src-tauri/src/compiler.rs`，文稿模型和 TeX 序列
 macOS 应用包将 `.njub` 声明为 ZIP 文稿类型。安装或首次启动应用后，可以在 Finder 中双击 `.njub` 文稿；应用在未运行和已经运行两种状态下都会接收文件。
 
 打包命令为 `npm run tauri build`，应用包输出到 `src-tauri/target/release/bundle/macos/NJU Beamer.app`。发布构建从 App Resources 读取 NJU 模板，XeLaTeX 中间文件写入系统应用缓存目录。
+
+macOS 自动构建入口为 [`.github/workflows/build-macos.yml`](../.github/workflows/build-macos.yml)。向 `main` 推送或手动触发工作流后，会构建 Intel 与 Apple Silicon 通用 `.app`，以 ZIP 形式上传为 Actions artifact；工作流不生成 Windows 产物，也不包含 Apple Developer ID 签名或公证。
