@@ -16,6 +16,7 @@
 !release/tutor.pdf
 app/node_modules/
 app/dist/
+app/dist-cli/
 app/*.tsbuildinfo
 app/src-tauri/target/
 app/src-tauri/gen/

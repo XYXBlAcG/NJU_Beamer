@@ -1,16 +1,18 @@
 import type { CSSProperties } from "react";
 import { CSS } from "@dnd-kit/utilities";
-import { useSortable } from "@dnd-kit/sortable";
-import { Code2, EyeOff, FunctionSquare, GripVertical, List, ListOrdered, PenTool, Table2, Trash2, Type } from "lucide-react";
-import type { Block, FontSize } from "../domain/deck";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Columns3, Code2, EyeOff, FunctionSquare, GripVertical, List, ListOrdered, MessageSquare, PenTool, Plus, Table2, Trash2, Type } from "lucide-react";
+import { createId, type Block, type BlockAppearance, type FontSize } from "../domain/deck";
 import type { DocumentAsset } from "../domain/document";
 import { useEditorStore } from "../state/editorStore";
 import { RichTextEditor } from "./RichTextEditor";
 import { SelectField } from "./SelectField";
 import { useEffect, useState } from "react";
+import { parseMixedText } from "../domain/mixedText";
+import { MixedTextPreview } from "./MixedTextPreview";
 
 const blockNames: Record<Block["type"], string> = {
-  text: "文本", list: "列表", formula: "公式", table: "表格", tikz: "TikZ", image: "图片", code: "代码", rawTex: "TeX",
+  text: "文本", list: "列表", formula: "公式", table: "表格", tikz: "TikZ", image: "图片", code: "代码", rawTex: "TeX", callout: "语义块", columns: "分栏",
 };
 
 const fontSizes = [
@@ -33,6 +35,18 @@ const revealModes = [
   { value: "pause" as const, label: "逐项暂停" },
 ];
 
+const appearanceModes = [
+  { value: "none" as const, label: "始终显示" },
+  { value: "uncover" as const, label: "逐块显现" },
+  { value: "only" as const, label: "逐块独显" },
+];
+
+const calloutStyles = [
+  { value: "block" as const, label: "普通" }, { value: "alert" as const, label: "警示" },
+  { value: "example" as const, label: "示例" }, { value: "theorem" as const, label: "定理" },
+  { value: "proof" as const, label: "证明" },
+];
+
 function EmbeddedImage({ asset, alt }: { asset?: DocumentAsset; alt: string }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
@@ -47,10 +61,21 @@ function EmbeddedImage({ asset, alt }: { asset?: DocumentAsset; alt: string }) {
 export function BlockEditor({ block }: { block: Block }) {
   const update = useEditorStore((state) => state.updateBlock);
   const remove = useEditorStore((state) => state.removeBlock);
+  const addBlockToColumn = useEditorStore((state) => state.addBlockToColumn);
   const imageAsset = useEditorStore((state) => block.type === "image" ? state.assets.find((asset) => asset.path === block.source) : undefined);
+  const allowFrameBreaks = useEditorStore((state) => state.deck.sections.flatMap((section) => section.slides).find((slide) => slide.id === state.selectedSlideId)?.frame.allowFrameBreaks ?? false);
   const sortable = useSortable({ id: block.id });
   const style: CSSProperties = { transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition };
   const updateFontSize = (fontSize: FontSize) => update(block.id, { ...block, fontSize });
+  const updateAppearance = (appearance: BlockAppearance) => update(block.id, { ...block, appearance });
+  const mathIssues = (block.type === "list" ? block.items : block.type === "table" ? [...block.columns, ...block.rows.flat()] : [])
+    .flatMap((value) => parseMixedText(value).issues);
+  const columnWidthIssue = block.type === "columns" && block.columns.reduce((sum, column) => sum + column.width, 0) > 1.001;
+  const previewText = block.type === "text" || block.type === "callout"
+    ? (block.content.content ?? []).flatMap((node) => node.content ?? []).map((node) => node.text ?? (node.type === "footnote" ? String(node.attrs?.text ?? "") : "")).join(" ")
+    : block.type === "list" ? block.items.join("\n")
+      : block.type === "table" ? [block.columns, ...block.rows].map((row) => row.join(" | ")).join("\n")
+        : block.type === "formula" ? `$$${block.latex}$$` : "";
 
   return (
     <article ref={sortable.setNodeRef} style={style} className={`block-editor ${block.hidden ? "hidden-block" : ""} ${sortable.isDragging ? "dragging" : ""}`}>
@@ -58,13 +83,14 @@ export function BlockEditor({ block }: { block: Block }) {
         <span className="block-identity"><button className="drag-handle" aria-label="拖动内容块" {...sortable.attributes} {...sortable.listeners}><GripVertical size={16} /></button>{blockNames[block.type]}</span>
         <span className="block-controls">
           <span className="block-font-size"><SelectField value={block.fontSize} options={fontSizes} onChange={updateFontSize} /></span>
+          <span className="block-appearance"><SelectField value={block.appearance} options={allowFrameBreaks ? appearanceModes.slice(0, 1) : appearanceModes} onChange={updateAppearance} /></span>
           <button className={`icon-button ${block.hidden ? "active" : ""}`} aria-label={block.hidden ? "显示内容块" : "隐藏内容块"} onClick={() => update(block.id, { ...block, hidden: !block.hidden })}><EyeOff size={15} /></button>
           <button className="icon-button danger" aria-label="删除内容块" onClick={() => remove(block.id)}><Trash2 size={15} /></button>
         </span>
       </header>
       {block.type === "text" && <RichTextEditor content={block.content} onChange={(content) => update(block.id, { ...block, content })} />}
       {block.type === "list" && <div className="field-stack">
-        <div className="inline-fields"><label className="toggle"><input type="checkbox" checked={block.ordered} onChange={(event) => update(block.id, { ...block, ordered: event.target.checked })} />有序列表</label><label>显示方式<SelectField value={block.reveal} options={revealModes} onChange={(reveal) => update(block.id, { ...block, reveal })} /></label></div>
+        <div className="inline-fields"><label className="toggle"><input type="checkbox" checked={block.ordered} onChange={(event) => update(block.id, { ...block, ordered: event.target.checked })} />有序列表</label><label>显示方式<SelectField value={block.reveal} options={allowFrameBreaks ? revealModes.slice(0, 1) : revealModes} onChange={(reveal) => update(block.id, { ...block, reveal })} /></label></div>
         <textarea value={block.items.join("\n")} onChange={(event) => update(block.id, { ...block, items: event.target.value.split("\n") })} />
       </div>}
       {block.type === "formula" && <div className="field-stack">
@@ -83,6 +109,22 @@ export function BlockEditor({ block }: { block: Block }) {
       {block.type === "image" && <div className="field-stack image-fields"><EmbeddedImage asset={imageAsset} alt={block.alt} /><span className="image-name">{block.source.split("/").pop()}</span><label>替代文本<input value={block.alt} onChange={(event) => update(block.id, { ...block, alt: event.target.value })} /></label><label>宽度<input type="range" min="0.1" max="1" step="0.05" value={block.width} onChange={(event) => update(block.id, { ...block, width: Number(event.target.value) })} /></label></div>}
       {block.type === "code" && <div className="field-stack"><label>语言<input value={block.language} onChange={(event) => update(block.id, { ...block, language: event.target.value })} /></label><textarea className="mono" value={block.content} onChange={(event) => update(block.id, { ...block, content: event.target.value })} /></div>}
       {block.type === "rawTex" && <textarea className="mono tall" value={block.source} onChange={(event) => update(block.id, { ...block, source: event.target.value })} />}
+      {block.type === "callout" && <div className="field-stack">
+        <div className="inline-fields"><label>类型<SelectField value={block.style} options={calloutStyles} onChange={(style) => update(block.id, { ...block, style })} /></label>{block.style !== "proof" && <label>标题<input value={block.title} onChange={(event) => update(block.id, { ...block, title: event.target.value })} /></label>}</div>
+        <RichTextEditor content={block.content} onChange={(content) => update(block.id, { ...block, content })} />
+      </div>}
+      {block.type === "columns" && <div className="field-stack columns-editor">
+        <div className="inline-fields"><label>对齐<SelectField value={block.alignment} options={[{ value: "top", label: "顶部" }, { value: "center", label: "居中" }]} onChange={(alignment) => update(block.id, { ...block, alignment })} /></label><button disabled={block.columns.length >= 3} onClick={() => update(block.id, { ...block, columns: [...block.columns.map((column) => ({ ...column, width: 0.32 })), { id: createId(), width: 0.32, blocks: [] }] })}><Plus size={14} />添加栏</button></div>
+        <div className="column-cards">{block.columns.map((column, columnIndex) => <section className="column-card" key={column.id}>
+          <label>宽度<input type="number" min="0.1" max="0.9" step="0.05" value={column.width} onChange={(event) => update(block.id, { ...block, columns: block.columns.map((item, index) => index === columnIndex ? { ...item, width: Number(event.target.value) } : item) })} /></label>
+          <SortableContext items={column.blocks.map((child) => child.id)} strategy={verticalListSortingStrategy}>{column.blocks.map((child) => <BlockEditor key={child.id} block={child} />)}</SortableContext>
+          <div className="column-add-blocks">{blockActions.map(({ type, label }) => <button key={type} onClick={() => addBlockToColumn(column.id, type)}><Plus size={13} />{label}</button>)}</div>
+          <button className="danger" disabled={block.columns.length <= 2} onClick={() => update(block.id, { ...block, columns: block.columns.filter((_, index) => index !== columnIndex).map((item) => ({ ...item, width: 0.48 })) })}>删除此栏</button>
+        </section>)}</div>
+      </div>}
+      {mathIssues.length > 0 && <div className="field-error" role="alert">{mathIssues[0].message}</div>}
+      {columnWidthIssue && <div className="field-error" role="alert">分栏宽度总和不能超过 1</div>}
+      <MixedTextPreview value={previewText} />
     </article>
   );
 }
@@ -95,4 +137,6 @@ export const blockActions = [
   { type: "tikz" as const, label: "TikZ", icon: PenTool },
   { type: "code" as const, label: "代码", icon: Code2 },
   { type: "rawTex" as const, label: "TeX", icon: ListOrdered },
+  { type: "callout" as const, label: "语义块", icon: MessageSquare },
+  { type: "columns" as const, label: "分栏", icon: Columns3 },
 ];

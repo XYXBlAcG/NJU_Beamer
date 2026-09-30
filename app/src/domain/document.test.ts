@@ -5,9 +5,10 @@ import { referencedAssets, type DocumentAsset } from "./document";
 describe("referencedAssets", () => {
   it("keeps only assets referenced by image blocks", () => {
     const deck = createDefaultDeck();
-    deck.sections[0].slides[1].blocks = [
-      { id: "image", type: "image", hidden: false, fontSize: "normal", source: "pic/used.png", width: 0.5, alt: "used" },
-    ];
+    deck.sections[0].slides[1].blocks = [{ id: "columns", type: "columns", hidden: false, fontSize: "normal", appearance: "none", alignment: "top", columns: [
+      { id: "left", width: 0.5, blocks: [{ id: "image", type: "image", hidden: false, fontSize: "normal", appearance: "none", source: "pic/used.png", width: 0.5, alt: "used" }] },
+      { id: "right", width: 0.5, blocks: [] },
+    ] }];
     const assets: DocumentAsset[] = [
       { path: "pic/used.png", mimeType: "image/png", content: [1] },
       { path: "pic/unused.jpg", mimeType: "image/jpeg", content: [2] },

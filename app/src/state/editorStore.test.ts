@@ -60,6 +60,26 @@ describe("editorStore document assets", () => {
     expect(useEditorStore.getState().deck.sections[0].slides[1].blocks.map((block) => block.id)).toEqual([blocks[2].id, blocks[0].id, blocks[1].id]);
   });
 
+  it("adds and moves blocks across nested columns", () => {
+    const state = useEditorStore.getState();
+    state.selectSlide(state.deck.sections[0].slides[1].id);
+    state.addBlock("columns");
+    const columns = useEditorStore.getState().deck.sections[0].slides[1].blocks.at(-1);
+    expect(columns?.type).toBe("columns");
+    if (!columns || columns.type !== "columns") return;
+    state.addBlockToColumn(columns.columns[0].id, "formula");
+    const updated = useEditorStore.getState().deck.sections[0].slides[1].blocks.at(-1);
+    if (!updated || updated.type !== "columns") return;
+    const formula = updated.columns[0].blocks.at(-1);
+    const target = updated.columns[1].blocks[0];
+    if (!formula) return;
+
+    state.reorderBlock(formula.id, target.id);
+
+    const moved = useEditorStore.getState().deck.sections[0].slides[1].blocks.at(-1);
+    expect(moved?.type === "columns" && moved.columns[1].blocks[0].id).toBe(formula.id);
+  });
+
   it("resets the revision when loading a document", () => {
     useEditorStore.getState().addSection();
     expect(useEditorStore.getState().revision).toBe(1);

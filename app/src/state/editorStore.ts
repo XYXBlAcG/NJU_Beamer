@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { createDefaultDeck, createId, richText, type Block, type Deck, type Slide } from "../domain/deck";
+import { createDefaultDeck, createId, defaultFrameOptions, richText, type Block, type Deck, type Slide } from "../domain/deck";
 import type { DocumentAsset } from "../domain/document";
 
 type InsertableBlockType = Exclude<Block["type"], "image">;
@@ -17,12 +17,13 @@ type EditorState = {
   updateMetadata: (key: keyof Deck["metadata"], value: string) => void;
   updateSettings: (settings: Partial<Deck["settings"]>) => void;
   updateSection: (sectionId: string, title: string) => void;
-  updateSlide: (slideId: string, update: Partial<Pick<Slide, "title" | "kind">>) => void;
+  updateSlide: (slideId: string, update: Partial<Pick<Slide, "title" | "kind" | "frame" | "notes">>) => void;
   addSection: () => void;
   addSlide: (sectionId?: string) => void;
   moveSlide: (direction: -1 | 1) => void;
   removeSlide: () => void;
   addBlock: (type: InsertableBlockType) => void;
+  addBlockToColumn: (columnId: string, type: InsertableBlockType) => void;
   addImage: (asset: DocumentAsset, alt?: string) => void;
   updateBlock: (blockId: string, block: Block) => void;
   reorderBlock: (activeId: string, overId: string) => void;
@@ -42,16 +43,44 @@ const mapSelectedSlide = (deck: Deck, selectedSlideId: string, update: (slide: S
 
 const newBlock = (type: InsertableBlockType): Block => {
   const id = createId();
+  const base = { id, hidden: false, fontSize: "normal" as const, appearance: "none" as const };
   switch (type) {
-    case "text": return { id, type, hidden: false, fontSize: "normal", content: richText("文本") };
-    case "list": return { id, type, hidden: false, fontSize: "normal", ordered: false, reveal: "none", items: ["列表项"] };
-    case "formula": return { id, type, hidden: false, fontSize: "normal", latex: "E = mc^2", layout: "single", numbered: false };
-    case "table": return { id, type, hidden: false, fontSize: "normal", columns: ["列 1", "列 2"], rows: [["内容", "内容"]], header: true };
-    case "tikz": return { id, type, hidden: false, fontSize: "normal", source: "\\draw[->] (0,0) -- (2,0);" };
-    case "code": return { id, type, hidden: false, fontSize: "normal", language: "Python", content: "print(\"Hello, NJU\")" };
-    case "rawTex": return { id, type, hidden: false, fontSize: "normal", source: "\\begin{block}{标题}\n内容\n\\end{block}" };
+    case "text": return { ...base, type, content: richText("文本") };
+    case "list": return { ...base, type, ordered: false, reveal: "none", items: ["列表项"] };
+    case "formula": return { ...base, type, latex: "E = mc^2", layout: "single", numbered: false };
+    case "table": return { ...base, type, columns: ["列 1", "列 2"], rows: [["内容", "内容"]], header: true };
+    case "tikz": return { ...base, type, source: "\\draw[->] (0,0) -- (2,0);" };
+    case "code": return { ...base, type, language: "Python", content: "print(\"Hello, NJU\")" };
+    case "rawTex": return { ...base, type, source: "\\begin{block}{标题}\n内容\n\\end{block}" };
+    case "callout": return { ...base, type, style: "block", title: "提示", content: richText("内容") };
+    case "columns": return { ...base, type, alignment: "top", columns: [
+      { id: createId(), width: 0.48, blocks: [newBlock("text")] },
+      { id: createId(), width: 0.48, blocks: [newBlock("text")] },
+    ] };
   }
 };
+
+const updateNestedBlock = (blocks: Block[], blockId: string, replacement?: Block): Block[] => blocks.flatMap((block) => {
+  if (block.id === blockId) return replacement ? [replacement] : [];
+  if (block.type !== "columns") return [block];
+  return [{ ...block, columns: block.columns.map((column) => ({ ...column, blocks: updateNestedBlock(column.blocks, blockId, replacement) })) }];
+});
+
+const blockContainer = (blocks: Block[], blockId: string): Block[] | undefined => {
+  if (blocks.some((block) => block.id === blockId)) return blocks;
+  for (const block of blocks) if (block.type === "columns") for (const column of block.columns) {
+    const found = blockContainer(column.blocks, blockId);
+    if (found) return found;
+  }
+  return undefined;
+};
+
+const appendToColumn = (blocks: Block[], columnId: string, block: Block): Block[] => blocks.map((item) => item.type === "columns" ? {
+  ...item,
+  columns: item.columns.map((column) => column.id === columnId
+    ? { ...column, blocks: [...column.blocks, block] }
+    : { ...column, blocks: appendToColumn(column.blocks, columnId, block) }),
+} : item);
 
 export const useEditorStore = create<EditorState>((set) => ({
   deck: initialDeck,
@@ -68,7 +97,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   updateSection: (sectionId, title) => set((state) => ({ deck: { ...state.deck, sections: state.deck.sections.map((section) => section.id === sectionId ? { ...section, title } : section) }, revision: state.revision + 1 })),
   updateSlide: (slideId, update) => set((state) => ({ deck: mapSelectedSlide(state.deck, slideId, (slide) => ({ ...slide, ...update })), revision: state.revision + 1 })),
   addSection: () => set((state) => {
-    const slide: Slide = { id: createId(), title: "新幻灯片", kind: "content", blocks: [] };
+    const slide: Slide = { id: createId(), title: "新幻灯片", kind: "content", blocks: [], frame: { ...defaultFrameOptions }, notes: "" };
     return {
       deck: { ...state.deck, sections: [...state.deck.sections, { id: createId(), title: "新章节", slides: [slide] }] },
       selectedSlideId: slide.id,
@@ -76,7 +105,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   addSlide: (sectionId) => set((state) => {
-    const slide: Slide = { id: createId(), title: "新幻灯片", kind: "content", blocks: [] };
+    const slide: Slide = { id: createId(), title: "新幻灯片", kind: "content", blocks: [], frame: { ...defaultFrameOptions }, notes: "" };
     const selectedSectionId = sectionId
       ?? state.deck.sections.find((section) => section.slides.some((item) => item.id === state.selectedSlideId))?.id
       ?? state.deck.sections.at(-1)?.id;
@@ -111,20 +140,25 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   addBlock: (type) => set((state) => ({ deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: [...slide.blocks, newBlock(type)] })), revision: state.revision + 1 })),
+  addBlockToColumn: (columnId, type) => set((state) => ({ deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: appendToColumn(slide.blocks, columnId, newBlock(type)) })), revision: state.revision + 1 })),
   addImage: (asset, alt = "图片") => set((state) => ({
     assets: [...state.assets.filter((item) => item.path !== asset.path), asset],
-    deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: [...slide.blocks, { id: createId(), type: "image", hidden: false, fontSize: "normal", source: asset.path, width: 0.8, alt }] })),
+    deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: [...slide.blocks, { id: createId(), type: "image", hidden: false, fontSize: "normal", appearance: "none", source: asset.path, width: 0.8, alt }] })),
     revision: state.revision + 1,
   })),
-  updateBlock: (blockId, block) => set((state) => ({ deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: slide.blocks.map((item) => item.id === blockId ? block : item) })), revision: state.revision + 1 })),
+  updateBlock: (blockId, block) => set((state) => ({ deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: updateNestedBlock(slide.blocks, blockId, block) })), revision: state.revision + 1 })),
   reorderBlock: (activeId, overId) => set((state) => ({ deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => {
-    const index = slide.blocks.findIndex((block) => block.id === activeId);
-    const target = slide.blocks.findIndex((block) => block.id === overId);
-    if (index < 0 || target < 0 || index === target) return slide;
-    const blocks = [...slide.blocks];
-    const [active] = blocks.splice(index, 1);
-    blocks.splice(target, 0, active);
+    if (activeId === overId) return slide;
+    const blocks = structuredClone(slide.blocks);
+    const source = blockContainer(blocks, activeId);
+    const target = blockContainer(blocks, overId);
+    if (!source || !target) return slide;
+    const index = source.findIndex((block) => block.id === activeId);
+    const [active] = source.splice(index, 1);
+    const targetIndex = target.findIndex((block) => block.id === overId);
+    if (!active || targetIndex < 0) return slide;
+    target.splice(targetIndex, 0, active);
     return { ...slide, blocks };
   }), revision: state.revision + 1 })),
-  removeBlock: (blockId) => set((state) => ({ deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: slide.blocks.filter((item) => item.id !== blockId) })), revision: state.revision + 1 })),
+  removeBlock: (blockId) => set((state) => ({ deck: mapSelectedSlide(state.deck, state.selectedSlideId, (slide) => ({ ...slide, blocks: updateNestedBlock(slide.blocks, blockId) })), revision: state.revision + 1 })),
 }));

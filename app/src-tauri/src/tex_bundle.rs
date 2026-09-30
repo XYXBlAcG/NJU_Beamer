@@ -1,7 +1,15 @@
-use crate::{archive::{self, ArchiveEntry}, document::{self, DocumentAsset}};
+use crate::{
+    archive::{self, ArchiveEntry},
+    document::{self, DocumentAsset},
+};
 use std::{collections::BTreeMap, fs, path::Path};
 
-pub fn write(path: &Path, source: &str, assets: &[DocumentAsset], template: &Path) -> Result<(), String> {
+pub fn write(
+    path: &Path,
+    source: &str,
+    assets: &[DocumentAsset],
+    template: &Path,
+) -> Result<(), String> {
     let style = fs::read(template.join("NJU.sty")).map_err(|error| error.to_string())?;
     let logo = fs::read(template.join("pic/NJU_Logo.png")).map_err(|error| error.to_string())?;
     let mut pictures = BTreeMap::from([("pic/NJU_Logo.png".to_owned(), logo)]);
@@ -10,11 +18,23 @@ pub fn write(path: &Path, source: &str, assets: &[DocumentAsset], template: &Pat
         pictures.insert(asset.path.clone(), asset.content.clone());
     }
     let mut entries = vec![
-        ArchiveEntry { path: "slide.tex", content: Some(source.as_bytes()) },
-        ArchiveEntry { path: "NJU.sty", content: Some(&style) },
-        ArchiveEntry { path: "pic/", content: None },
+        ArchiveEntry {
+            path: "slide.tex",
+            content: Some(source.as_bytes()),
+        },
+        ArchiveEntry {
+            path: "NJU.sty",
+            content: Some(&style),
+        },
+        ArchiveEntry {
+            path: "pic/",
+            content: None,
+        },
     ];
-    entries.extend(pictures.iter().map(|(path, content)| ArchiveEntry { path, content: Some(content) }));
+    entries.extend(pictures.iter().map(|(path, content)| ArchiveEntry {
+        path,
+        content: Some(content),
+    }));
     archive::write(path, &entries)
 }
 

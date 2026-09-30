@@ -1,11 +1,11 @@
 mod archive;
+mod binary_file;
 mod compiler;
 mod document;
 mod tex_bundle;
 
 use compiler::CompileResult;
 use std::{
-    fs,
     path::PathBuf,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -68,23 +68,28 @@ async fn compile_document(
 }
 
 #[tauri::command]
-fn read_document(path: String) -> Result<document::OpenedDocument, String> {
-    document::read(&PathBuf::from(path))
+fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
+    binary_file::read(&PathBuf::from(path))
 }
 
 #[tauri::command]
-fn write_document(path: String, content: String, assets: Vec<document::DocumentAsset>) -> Result<(), String> {
-    document::write(&PathBuf::from(path), &content, &assets)
-}
-
-#[tauri::command]
-fn export_tex_bundle(path: String, source: String, assets: Vec<document::DocumentAsset>, workspace: String) -> Result<(), String> {
-    tex_bundle::write(&PathBuf::from(path), &source, &assets, &PathBuf::from(workspace))
+fn export_tex_bundle(
+    path: String,
+    source: String,
+    assets: Vec<document::DocumentAsset>,
+    workspace: String,
+) -> Result<(), String> {
+    tex_bundle::write(
+        &PathBuf::from(path),
+        &source,
+        &assets,
+        &PathBuf::from(workspace),
+    )
 }
 
 #[tauri::command]
 fn write_binary_file(path: String, content: Vec<u8>) -> Result<(), String> {
-    fs::write(path, content).map_err(|error| error.to_string())
+    binary_file::write(&PathBuf::from(path), &content)
 }
 
 #[tauri::command]
@@ -101,8 +106,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             default_template_directory,
             compile_document,
-            read_document,
-            write_document,
+            read_binary_file,
             export_tex_bundle,
             write_binary_file,
             register_open_document_listener

@@ -1,4 +1,4 @@
-import type { Deck } from "./deck";
+import type { Block, Deck } from "./deck";
 
 export type SupportedImageMimeType = "image/png" | "image/jpeg";
 
@@ -8,12 +8,15 @@ export type DocumentAsset = {
   content: number[];
 };
 
+export const referencedAssetPaths = (deck: Deck) => {
+  const imagePaths = (blocks: Block[]): string[] => blocks.flatMap((block) => block.type === "image"
+    ? [block.source]
+    : block.type === "columns" ? block.columns.flatMap((column) => imagePaths(column.blocks)) : []);
+  return new Set(deck.sections.flatMap((section) => section.slides).flatMap((slide) => imagePaths(slide.blocks)));
+};
+
 export const referencedAssets = (deck: Deck, assets: DocumentAsset[]) => {
-  const paths = new Set(
-    deck.sections.flatMap((section) => section.slides).flatMap((slide) => slide.blocks)
-      .filter((block) => block.type === "image")
-      .map((block) => block.source),
-  );
+  const paths = referencedAssetPaths(deck);
   return assets.filter((asset) => paths.has(asset.path));
 };
 

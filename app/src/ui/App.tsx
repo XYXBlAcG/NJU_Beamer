@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Eye, FileArchive, FileDown, FilePlus2, FolderOpen, FolderPlus, Hammer, Pencil, Plus, Save, Settings2, Trash2 } from "lucide-react";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { createDefaultDeck } from "../domain/deck";
+import { createDefaultDeck, deckSchema, type Block } from "../domain/deck";
 import { referencedAssets } from "../domain/document";
 import { serializeDeck } from "../domain/serialize";
+import { validateDeckContent } from "../domain/deckValidation";
 import { compileDocument, defaultTemplateDirectory, exportPdf, exportTexBundle, openDeck, readDeck, registerOpenDocumentListener, saveDeck, saveDeckAs } from "../services/desktop";
 import { useEditorStore } from "../state/editorStore";
 import { PdfPreview } from "./PdfPreview";
@@ -18,6 +19,10 @@ const slideKinds = [
   { value: "contents" as const, label: "目录页" },
   { value: "content" as const, label: "内容页" },
 ];
+
+const blocksHaveOverlay = (blocks: Block[]): boolean => blocks.some((block) => block.appearance !== "none"
+  || (block.type === "list" && block.reveal !== "none")
+  || (block.type === "columns" && block.columns.some((column) => blocksHaveOverlay(column.blocks))));
 
 type DocumentOperation =
   | { type: "new" }
@@ -64,6 +69,21 @@ export function App() {
 
   const compile = useCallback(async () => {
     if (!store.workspace) return;
+    const structure = deckSchema.safeParse(store.deck);
+    if (!structure.success) {
+      setLog(structure.error.issues.map((issue) => issue.message).join("\n"));
+      setCompileState("error");
+      showNotice("页面设置不完整，请查看右侧诊断信息", "error");
+      return;
+    }
+    const diagnostics = validateDeckContent(store.deck);
+    if (diagnostics.length) {
+      const message = diagnostics.map((item) => `${slides.findIndex((slide) => slide.id === item.slideId) + 1} 页：${item.message}`).join("\n");
+      setLog(message);
+      setCompileState("error");
+      showNotice("公式定界符不完整，请查看右侧诊断信息", "error");
+      return;
+    }
     const revision = ++compileRevision.current;
     setCompileState("running");
     try {
@@ -86,24 +106,34 @@ export function App() {
       setCompileState("error");
       showNotice("编译失败，请查看右侧诊断信息", "error");
     }
-  }, [showNotice, source, store.assets, store.deck, store.revision, store.workspace]);
+  }, [showNotice, slides, source, store.assets, store.deck, store.revision, store.workspace]);
 
   const handleSave = useCallback(async (): Promise<boolean> => {
-    const path = await saveDeck(store.deck, store.assets, store.documentPath);
-    if (!path) return false;
-    store.setDocumentPath(path);
-    setSavedRevision(store.revision);
-    showNotice("保存成功");
-    return true;
+    try {
+      const path = await saveDeck(store.deck, store.assets, store.documentPath);
+      if (!path) return false;
+      store.setDocumentPath(path);
+      setSavedRevision(store.revision);
+      showNotice("保存成功");
+      return true;
+    } catch (error) {
+      showNotice(error instanceof Error ? error.message : String(error), "error");
+      return false;
+    }
   }, [showNotice, store.assets, store.deck, store.documentPath, store.revision, store.setDocumentPath]);
 
   const handleSaveAs = useCallback(async (): Promise<boolean> => {
-    const path = await saveDeckAs(store.deck, store.assets);
-    if (!path) return false;
-    store.setDocumentPath(path);
-    setSavedRevision(store.revision);
-    showNotice("保存成功");
-    return true;
+    try {
+      const path = await saveDeckAs(store.deck, store.assets);
+      if (!path) return false;
+      store.setDocumentPath(path);
+      setSavedRevision(store.revision);
+      showNotice("保存成功");
+      return true;
+    } catch (error) {
+      showNotice(error instanceof Error ? error.message : String(error), "error");
+      return false;
+    }
   }, [showNotice, store.assets, store.deck, store.revision, store.setDocumentPath]);
 
   const handleExportTex = useCallback(async () => {
@@ -279,6 +309,11 @@ export function App() {
                 {selectedSection && <label>章节<input value={selectedSection.title} onChange={(event) => store.updateSection(selectedSection.id, event.target.value)} /></label>}
                 <label>类型<SelectField value={selectedSlide.kind} options={slideKinds} onChange={(kind) => store.updateSlide(selectedSlide.id, { kind })} /></label>
                 {selectedSlide.kind === "content" && <label>页标题<input value={selectedSlide.title} onChange={(event) => store.updateSlide(selectedSlide.id, { title: event.target.value })} /></label>}
+                <label className="toggle"><input type="checkbox" checked={selectedSlide.frame.plain} onChange={(event) => store.updateSlide(selectedSlide.id, { frame: { ...selectedSlide.frame, plain: event.target.checked } })} />无页眉页脚</label>
+                <label className="toggle" title={blocksHaveOverlay(selectedSlide.blocks) ? "逐项或逐块显示与自动分页不能同时使用" : ""}><input type="checkbox" checked={selectedSlide.frame.allowFrameBreaks} disabled={blocksHaveOverlay(selectedSlide.blocks)} onChange={(event) => store.updateSlide(selectedSlide.id, { frame: { ...selectedSlide.frame, allowFrameBreaks: event.target.checked } })} />内容自动分页</label>
+                <label className="toggle"><input type="checkbox" checked={selectedSlide.frame.shrink} onChange={(event) => store.updateSlide(selectedSlide.id, { frame: { ...selectedSlide.frame, shrink: event.target.checked } })} />自动缩小内容</label>
+                <label>页面标签<input value={selectedSlide.frame.label} placeholder="intro" onChange={(event) => store.updateSlide(selectedSlide.id, { frame: { ...selectedSlide.frame, label: event.target.value.replace(/[^A-Za-z0-9:._-]/g, "") } })} /></label>
+                <label>演讲者备注<textarea value={selectedSlide.notes} onChange={(event) => store.updateSlide(selectedSlide.id, { notes: event.target.value })} /></label>
                 <div className="slide-actions"><button onClick={() => store.moveSlide(-1)}><ChevronUp size={15} />上移</button><button onClick={() => store.moveSlide(1)}><ChevronDown size={15} />下移</button><button className="danger" onClick={store.removeSlide}><Trash2 size={15} />删除</button></div>
               </div>
             </details>

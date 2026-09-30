@@ -1,0 +1,388 @@
+{
+  "specVersion": 2,
+  "metadata": {
+    "title": "双重计数：以树的计数为例",
+    "subtitle": "一种神奇而漂亮的组合证明技巧",
+    "author": "NJU Beamer CLI",
+    "institute": "南京大学",
+    "date": "\\today"
+  },
+  "settings": {
+    "sectionTitleSlides": true,
+    "bodyFont": "song",
+    "mathFont": {
+      "preset": "times"
+    },
+    "theme": {
+      "mode": "custom",
+      "name": "Madrid",
+      "colorTheme": "dolphin",
+      "fontTheme": "professionalfonts",
+      "innerTheme": "circles",
+      "outerTheme": "miniframes"
+    },
+    "documentClassOptions": "aspectratio=169",
+    "preamble": "\\setbeamertemplate{navigation symbols}{}",
+    "packages": [
+      {
+        "name": "bookmark"
+      }
+    ],
+    "tikzLibraries": [
+      "arrows.meta",
+      "positioning"
+    ]
+  },
+  "sections": [
+    {
+      "title": "双重计数的思想",
+      "slides": [
+        {
+          "kind": "title"
+        },
+        {
+          "kind": "contents"
+        },
+        {
+          "title": "一次对象，两种数法",
+          "frame": {
+            "label": "double-counting"
+          },
+          "notes": "先强调同一个集合 \\(\\Omega\\)，再比较两种分组方式。",
+          "blocks": [
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "双重计数",
+                    "bold": true,
+                    "color": "#63065F"
+                  },
+                  {
+                    "text": "的核心不是把两个式子硬凑在一起，而是先找到同一个有限集合 \\(\\Omega\\)，再从两个自然视角计算 $|\\Omega|$。"
+                  }
+                ]
+              ]
+            },
+            {
+              "type": "formula",
+              "appearance": "uncover",
+              "latex": "|\\Omega|=\\sum_{a\\in A}|\\Omega_a|=\\sum_{b\\in B}|\\Omega^b|"
+            },
+            {
+              "type": "callout",
+              "style": "theorem",
+              "title": "双重计数原理",
+              "appearance": "only",
+              "content": "若两种方法都无遗漏、无重复地计数同一集合 \\(\\Omega\\)，所得表达式必然相等。"
+            },
+            {
+              "type": "list",
+              "items": [
+                "先说清楚究竟在数哪些带结构的对象",
+                "第一种数法固定对象的最终形态",
+                "第二种数法沿着对象的生成过程计数",
+                "两边数的是同一个集合，因此必然相等"
+              ],
+              "reveal": "overlay-alert"
+            }
+          ]
+        },
+        {
+          "title": "热身：图中的点边关联",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "令 Ω 为图中所有“顶点与其相邻边”的关联对。按顶点分组时，每个顶点贡献它的度数；按边分组时，每条边恰好贡献两个端点。"
+            },
+            {
+              "type": "formula",
+              "latex": "\\sum_{v\\in V}\\deg(v)=2|E|",
+              "numbered": true
+            },
+            {
+              "type": "text",
+              "content": "这个熟悉的握手定理已经包含双重计数的全部逻辑：对象不变，只改变观察与分组方式。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "凯莱树计数公式",
+      "slides": [
+        {
+          "title": "目标：数标号树",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "在固定顶点集 [n]={1,2,…,n} 上，一共有多少棵不同的无根树？顶点带标号，因此仅仅交换两个标号通常会得到另一棵树。"
+            },
+            {
+              "type": "formula",
+              "latex": "T_n=n^{n-2}",
+              "numbered": true
+            },
+            {
+              "type": "table",
+              "columns": [
+                "n",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5"
+              ],
+              "rows": [
+                [
+                  "T_n",
+                  "1",
+                  "1",
+                  "3",
+                  "16",
+                  "125"
+                ]
+              ],
+              "header": true
+            },
+            {
+              "type": "text",
+              "content": "电影《心灵捕手》让树与图论黑板题广为人知；本讲聚焦标准的“所有标号树”计数问题。"
+            },
+            {
+              "type": "columns",
+              "alignment": "top",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "style": "example",
+                      "title": "小规模",
+                      "content": "当 $n=4$ 时，凯莱公式给出 $T_4=4^2=16$。"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "ordered": true,
+                      "items": [
+                        "固定顶点集 $[n]$",
+                        "区分所有顶点标号",
+                        "数无根树"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "把树改造成可计数的构造记录",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "从 n 个孤立顶点开始，逐次加入 n-1 条有向边。每一步都合并两棵有根树，并让边从最终根向外定向；最终得到一棵有根树。"
+            },
+            {
+              "type": "tikz",
+              "source": "\\node[circle,draw] (r) at (0,1.4) {1};\n\\node[circle,draw] (a) at (-1.6,0) {2};\n\\node[circle,draw] (b) at (0,0) {3};\n\\node[circle,draw] (c) at (1.6,0) {4};\n\\draw[-{Stealth},thick] (r) -- (a);\n\\draw[-{Stealth},thick] (r) -- (b);\n\\draw[-{Stealth},thick] (b) -- (c);"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "Ω",
+                    "bold": true,
+                    "color": "#63065F"
+                  },
+                  {
+                    "text": " 定义为所有这样的“有序加边序列”。现在从最终结果和生成过程两边数 |Ω|。"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "title": "第一种数法：先固定最终的树",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "先选一棵无根标号树：T_n 种",
+                "再从 n 个顶点中选择根：n 种",
+                "最后排列 n-1 条有向边的加入顺序：(n-1)! 种"
+              ]
+            },
+            {
+              "type": "formula",
+              "latex": "|\\Omega|=T_n\\cdot n\\cdot(n-1)!=T_n n!",
+              "numbered": true
+            },
+            {
+              "type": "text",
+              "content": "这里把每条边的方向唯一确定为从根向外，所以没有额外的方向选择。"
+            }
+          ]
+        },
+        {
+          "title": "第二种数法：沿生成过程前进",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "假设当前已经加入 n-k 条边，得到含 k 棵有根树的森林。下一条边必须把两个不同分量连接起来。"
+            },
+            {
+              "type": "list",
+              "items": [
+                "边的起点可以是任意顶点：n 种",
+                "边的终点必须是另一个分量的根：k-1 种",
+                "所以从 k 个分量减少到 k-1 个分量有 n(k-1) 种选择"
+              ],
+              "reveal": "pause"
+            },
+            {
+              "type": "formula",
+              "latex": "|\\Omega|=\\prod_{k=2}^{n}n(k-1)=n^{n-1}(n-1)!",
+              "numbered": true
+            }
+          ]
+        },
+        {
+          "title": "两种数法相遇",
+          "blocks": [
+            {
+              "type": "formula",
+              "latex": "T_n n!=n^{n-1}(n-1)!=n^{n-2}n!",
+              "numbered": true
+            },
+            {
+              "type": "formula",
+              "latex": "\\boxed{T_n=n^{n-2}}"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "漂亮之处：",
+                    "bold": true,
+                    "color": "#63065F"
+                  },
+                  {
+                    "text": "我们没有直接枚举树，而是给树增加“根”和“加边顺序”，把难数的静态对象变成容易逐步计数的构造记录。"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "title": "检查 n=4",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "从四个孤立顶点开始，森林分量数依次为 4、3、2、1。按生成过程，每一步的选择数分别是："
+            },
+            {
+              "type": "table",
+              "columns": [
+                "当前分量 k",
+                "4",
+                "3",
+                "2"
+              ],
+              "rows": [
+                [
+                  "下一条边的选择 n(k-1)",
+                  "12",
+                  "8",
+                  "4"
+                ]
+              ],
+              "header": true
+            },
+            {
+              "type": "formula",
+              "latex": "|\\Omega|=12\\times8\\times4=384"
+            },
+            {
+              "type": "formula",
+              "latex": "T_4\\cdot4!=384\\quad\\Longrightarrow\\quad T_4=16"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "方法与参考",
+      "slides": [
+        {
+          "title": "怎样发现双重计数证明",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "结果难以直接数时，为对象添加根、顺序、标记或颜色",
+                "寻找一个方向是“固定结果”，另一个方向是“逐步构造”的集合",
+                "确保两种数法没有遗漏也没有重复，并明确它们数的是同一个 Ω",
+                "最后再消去人为添加的辅助结构"
+              ],
+              "reveal": "overlay-alert"
+            },
+            {
+              "type": "text",
+              "content": "双重计数的创造性往往集中在 Ω 的选择上；一旦集合选对，代数只是收尾。"
+            }
+          ]
+        },
+        {
+          "title": "参考资料",
+          "blocks": [
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1. 电影《心灵捕手》（Good Will Hunting，1997）：图论与树枚举的剧情背景。"
+                  }
+                ],
+                [
+                  {
+                    "text": "2. Martin Aigner、Günter M. Ziegler：《数学天书中的证明》第 4 版，第 30 章“凯莱树计数公式”。",
+                    "href": "https://doi.org/10.1007/978-3-642-00856-6_30"
+                  }
+                ],
+                [
+                  {
+                    "text": "3. Wikipedia：Double counting - Counting trees。",
+                    "href": "https://en.wikipedia.org/wiki/Double_counting_(proof_technique)#Counting_trees"
+                  }
+                ]
+              ]
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "证明归功于 Jim Pitman；《数学天书中的证明》称这一双重计数版本是四种证明中最漂亮的一种。",
+                    "italic": true
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

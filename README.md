@@ -1,12 +1,13 @@
 # NJU Beamer GUI Editor
 
-所见即所得的 XeTeX Beamer 桌面编辑器，使用真实 XeLaTeX 输出作为预览结果，支持响应式多页网格、系统 PDF 预览和从当前页播放。
+所见即所得的 XeTeX Beamer 桌面编辑器，使用真实 XeLaTeX 输出作为预览结果，支持响应式多页网格、系统 PDF 预览、从当前页播放，以及正文/数学字体、Beamer 主题与 TeX preamble 定制。
 
 ## 仓库入口
 
 - 应用源码与开发命令：[app](app)
 - 内置南京大学模板：[templates/nju](templates/nju)
 - 可直接打开的示例文稿：[examples/nju-demo.njub](examples/nju-demo.njub)
+- Agent/CLI 创作示例：[examples/double-counting-trees.spec.json](examples/double-counting-trees.spec.json) 与 [examples/double-counting-trees.njub](examples/double-counting-trees.njub)
 - 架构与文档索引：[docs](docs)
 
 ## 本地开发

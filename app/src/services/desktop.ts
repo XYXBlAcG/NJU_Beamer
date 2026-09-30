@@ -1,8 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { deckSchema, type Deck } from "../domain/deck";
-import { documentJson, referencedAssets, type DocumentAsset } from "../domain/document";
+import type { Deck } from "../domain/deck";
+import { referencedAssets, type DocumentAsset } from "../domain/document";
+import { decodeNjub, encodeNjub } from "../domain/njub";
 
 export type CompileResult = {
   success: boolean;
@@ -18,15 +19,15 @@ export const compileDocument = (source: string, workspace: string, assets: Docum
 export const saveDeck = async (deck: Deck, assets: DocumentAsset[], currentPath?: string) => {
   const path = currentPath ?? (await save({ defaultPath: "deck.njub", filters: [{ name: "NJU Beamer", extensions: ["njub"] }] }));
   if (!path) return undefined;
-  await invoke("write_document", { path, content: documentJson(deck), assets: referencedAssets(deck, assets) });
+  await invoke("write_binary_file", { path, content: Array.from(encodeNjub(deck, assets)) });
   return path;
 };
 
 export const saveDeckAs = (deck: Deck, assets: DocumentAsset[]) => saveDeck(deck, assets);
 
 export const readDeck = async (path: string) => {
-  const document = await invoke<{ content: string; assets: DocumentAsset[] }>("read_document", { path });
-  return { path, deck: deckSchema.parse(JSON.parse(document.content)), assets: document.assets };
+  const document = decodeNjub(new Uint8Array(await invoke<number[]>("read_binary_file", { path })));
+  return { path, ...document };
 };
 
 export const openDeck = async () => {

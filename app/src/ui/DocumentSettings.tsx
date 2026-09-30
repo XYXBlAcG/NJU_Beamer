@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
-import type { BodyFont } from "../domain/deck";
+import type { BodyFont, MathFontPreset, ThemeMode } from "../domain/deck";
 import { useEditorStore } from "../state/editorStore";
 import { SelectField } from "./SelectField";
 
@@ -9,15 +9,38 @@ const bodyFonts: Array<{ value: BodyFont; label: string }> = [
   { value: "kai", label: "楷体" },
   { value: "fangsong", label: "仿宋" },
 ];
+const mathFonts: Array<{ value: MathFontPreset; label: string }> = [
+  { value: "latin-modern", label: "Latin Modern Math" },
+  { value: "times", label: "Times（TeX Gyre Termes Math）" },
+  { value: "custom", label: "自定义 OpenType 数学字体" },
+];
+const themeModes: Array<{ value: ThemeMode; label: string }> = [
+  { value: "nju", label: "南京大学主题" },
+  { value: "default", label: "Beamer 默认主题" },
+  { value: "custom", label: "自定义 Beamer 主题" },
+];
 
 export function DocumentSettings() {
   const settings = useEditorStore((state) => state.deck.settings);
   const updateSettings = useEditorStore((state) => state.updateSettings);
+  const updateMathFont = (update: Partial<typeof settings.mathFont>) => updateSettings({ mathFont: { ...settings.mathFont, ...update } });
+  const updateTheme = (update: Partial<typeof settings.theme>) => updateSettings({ theme: { ...settings.theme, ...update } });
 
   return (
     <div className="field-stack document-settings">
       <label className="toggle"><input type="checkbox" checked={settings.sectionTitleSlides} onChange={(event) => updateSettings({ sectionTitleSlides: event.target.checked })} />章节开始时生成单独标题页</label>
       <label>正文字体<SelectField value={settings.bodyFont} options={bodyFonts} onChange={(bodyFont) => updateSettings({ bodyFont })} /></label>
+      <label>数学字体<SelectField value={settings.mathFont.preset} options={mathFonts} onChange={(preset) => updateMathFont({ preset })} /></label>
+      {settings.mathFont.preset === "custom" && <label>数学字体名称<input value={settings.mathFont.customName} placeholder="STIX Two Math" onChange={(event) => updateMathFont({ customName: event.target.value.replace(/[{}\\\r\n]/g, "") })} /></label>}
+      <label>主题<SelectField value={settings.theme.mode} options={themeModes} onChange={(mode) => updateTheme({ mode })} /></label>
+      {settings.theme.mode === "custom" && <div className="theme-grid">
+        <label>Theme<input value={settings.theme.name} placeholder="Madrid" onChange={(event) => updateTheme({ name: event.target.value.replace(/[^A-Za-z0-9._-]/g, "") })} /></label>
+        <label>Color theme<input value={settings.theme.colorTheme} placeholder="dolphin" onChange={(event) => updateTheme({ colorTheme: event.target.value.replace(/[^A-Za-z0-9._-]/g, "") })} /></label>
+        <label>Font theme<input value={settings.theme.fontTheme} placeholder="professionalfonts" onChange={(event) => updateTheme({ fontTheme: event.target.value.replace(/[^A-Za-z0-9._-]/g, "") })} /></label>
+        <label>Inner theme<input value={settings.theme.innerTheme} placeholder="circles" onChange={(event) => updateTheme({ innerTheme: event.target.value.replace(/[^A-Za-z0-9._-]/g, "") })} /></label>
+        <label>Outer theme<input value={settings.theme.outerTheme} placeholder="miniframes" onChange={(event) => updateTheme({ outerTheme: event.target.value.replace(/[^A-Za-z0-9._-]/g, "") })} /></label>
+      </div>}
+      <label>Document class 选项<input value={settings.documentClassOptions} placeholder="aspectratio=169" onChange={(event) => updateSettings({ documentClassOptions: event.target.value })} /></label>
       <label>TikZ 库<input value={settings.tikzLibraries.join(", ")} placeholder="arrows.meta, positioning" onChange={(event) => updateSettings({ tikzLibraries: event.target.value.split(",").map((value) => value.trim()).filter((value) => /^[A-Za-z0-9._-]+$/.test(value)) })} /></label>
       <div className="settings-heading"><span>LaTeX 包</span><button onClick={() => updateSettings({ packages: [...settings.packages, { name: "amsfonts", options: "" }] })}><Plus size={14} />添加</button></div>
       {settings.packages.map((entry, index) => <div className="package-row" key={index}>
@@ -28,6 +51,7 @@ export function DocumentSettings() {
         <input aria-label="包选项" value={entry.options} placeholder="选项" onChange={(event) => updateSettings({ packages: settings.packages.map((item, itemIndex) => itemIndex === index ? { ...item, options: event.target.value } : item) })} />
         <button className="icon-button danger" aria-label="删除包" onClick={() => updateSettings({ packages: settings.packages.filter((_, itemIndex) => itemIndex !== index) })}><Trash2 size={14} /></button>
       </div>)}
+      <label>自定义 TeX 头<textarea className="tall tex-preamble" value={settings.preamble} placeholder="\\setbeamertemplate{navigation symbols}{}" onChange={(event) => updateSettings({ preamble: event.target.value })} /></label>
     </div>
   );
 }
