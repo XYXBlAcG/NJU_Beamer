@@ -9,7 +9,7 @@ describe("serializeDeck", () => {
     const second = serializeDeck(deck);
 
     expect(first).toBe(second);
-    expect(first).toContain("\\documentclass{beamer}");
+    expect(first).toContain("\\documentclass[aspectratio=43]{beamer}");
     expect(first).toContain("\\usepackage[fontset=fandol]{ctex}");
     expect(first).toContain("\\usepackage{unicode-math}");
     expect(first).toContain("\\setmathfont{latinmodern-math.otf}");
@@ -30,7 +30,7 @@ describe("serializeDeck", () => {
       innerTheme: "circles",
       outerTheme: "miniframes",
     };
-    deck.settings.documentClassOptions = "aspectratio=169";
+    deck.settings.pageSize = { preset: "16:9", widthMm: 160, heightMm: 90 };
     deck.settings.preamble = "\\setbeamertemplate{navigation symbols}{}";
 
     const source = serializeDeck(deck);
@@ -99,8 +99,8 @@ describe("serializeDeck", () => {
 
     const source = serializeDeck(deck);
 
-    expect(source).toContain("\\setCJKmainfont{FandolSong-Regular.otf}[BoldFont=FandolSong-Bold.otf,ItalicFont=FandolKai-Regular.otf");
-    expect(source).toContain("\\setCJKsansfont{FandolSong-Regular.otf}[BoldFont=FandolSong-Bold.otf,ItalicFont=FandolKai-Regular.otf");
+    expect(source).toContain("\\setCJKmainfont{FandolSong-Regular.otf}[BoldFont=FandolSong-Bold.otf,ItalicFont=FandolSong-Regular.otf");
+    expect(source).toContain("\\setCJKsansfont{FandolSong-Regular.otf}[BoldFont=FandolSong-Bold.otf,ItalicFont=FandolSong-Regular.otf");
     expect(source).toContain("\\textbf{粗体}");
     expect(source).toContain("\\textit{斜体}");
     expect(source).not.toContain("\\kaishu");
@@ -123,7 +123,7 @@ describe("serializeDeck", () => {
 
     const source = serializeDeck(deck);
 
-    expect(source).toContain("\\setCJKsansfont{FandolHei-Regular.otf}[BoldFont=FandolHei-Bold.otf,ItalicFont=FandolKai-Regular.otf");
+    expect(source).toContain("\\setCJKsansfont{FandolHei-Regular.otf}[BoldFont=FandolHei-Bold.otf,ItalicFont=FandolHei-Regular.otf");
     expect(source).toContain("\\href{https://www.nju.edu.cn/}{南京大学}");
     expect(source).toContain("\\href{https://example.com/a\\%20b\\#trees}{树的计数}");
     expect(source).not.toContain("javascript:");

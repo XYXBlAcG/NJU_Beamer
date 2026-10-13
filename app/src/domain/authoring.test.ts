@@ -24,7 +24,7 @@ describe("composeAuthoringSpec", () => {
     }, async () => { throw new Error("unexpected asset"); });
 
     expect(result.deck).toMatchObject({
-      formatVersion: 4,
+      formatVersion: 5,
       metadata: { title: "双重计数", subtitle: "", author: "", institute: "南京大学", date: "\\today" },
       settings: { sectionTitleSlides: false, bodyFont: "song", packages: [], tikzLibraries: [] },
     });
@@ -91,7 +91,7 @@ describe("composeAuthoringSpec", () => {
       settings: {
         mathFont: { preset: "times" },
         theme: { mode: "custom", name: "Madrid", colorTheme: "dolphin" },
-        documentClassOptions: "aspectratio=169",
+        pageSize: { preset: "16:9", widthMm: 160, heightMm: 90 },
         preamble: "\\setbeamertemplate{navigation symbols}{}",
       },
       sections: [{ title: "示例", slides: [{ kind: "title" }] }],
@@ -100,7 +100,8 @@ describe("composeAuthoringSpec", () => {
     expect(result.deck.settings).toMatchObject({
       mathFont: { preset: "times", customName: "" },
       theme: { mode: "custom", name: "Madrid", colorTheme: "dolphin" },
-      documentClassOptions: "aspectratio=169",
+      documentClassOptions: "",
+      pageSize: { preset: "16:9" },
       preamble: "\\setbeamertemplate{navigation symbols}{}",
     });
   });

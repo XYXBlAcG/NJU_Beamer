@@ -4,6 +4,16 @@ pub fn read(path: &Path) -> Result<Vec<u8>, String> {
     fs::read(path).map_err(|error| error.to_string())
 }
 
+pub fn write_if_changed(path: &Path, content: &[u8]) -> Result<(), std::io::Error> {
+    match fs::read(path) {
+        Ok(previous) if previous == content => return Ok(()),
+        Ok(_) => (),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => (),
+        Err(error) => return Err(error),
+    }
+    fs::write(path, content)
+}
+
 pub fn write(path: &Path, content: &[u8]) -> Result<(), String> {
     let parent = path.parent().ok_or_else(|| "文件保存位置无效".to_owned())?;
     let mut temporary =

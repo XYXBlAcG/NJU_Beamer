@@ -6,6 +6,10 @@ import { z, ZodError } from "zod";
 import packageJson from "../package.json";
 import { authoringSpecSchema, composeAuthoringSpec } from "../src/domain/authoring";
 import { decodeNjub, documentSummary, encodeNjub } from "../src/domain/njub";
+import { encodeExtension, extensionSchema, instantiateTemplate } from "../src/domain/extensions";
+import { builtInExtension } from "../src/domain/presets";
+import { archiveContent, referencedAssetPaths, type DocumentAsset } from "../src/domain/document";
+import { createDefaultPaper, paperSchema } from "../src/domain/paper";
 
 export type CliIo = {
   cwd: string;
@@ -57,6 +61,73 @@ export async function runCli(argv: string[], io: CliIo): Promise<number> {
     .option("--json", "输出 JSON")
     .action(() => io.stdout(json(z.toJSONSchema(authoringSpecSchema, { target: "draft-7", io: "input" }))));
 
+  program.command("catalogue")
+    .description("列出内置主题、模板、TikZ 和公式素材")
+    .option("--json", "输出 JSON")
+    .action(() => io.stdout(json(builtInExtension)));
+
+  program.command("from-template")
+    .description("从内置模板创建文稿")
+    .argument("<id>", "模板标识")
+    .requiredOption("--output <path>", "输出 .njub 文件")
+    .option("--force", "覆盖已有输出", false)
+    .option("--json", "输出 JSON")
+    .action(async (id: string, options: { output: string; force: boolean; json?: boolean }) => {
+      const template = builtInExtension.templates.find((item) => item.id === id);
+      if (!template) throw new CliFailure("SPEC_INVALID", 3, `模板不存在：${id}`);
+      const output = resolve(io.cwd, options.output);
+      if (!output.toLowerCase().endsWith(".njub")) throw new CliFailure("CLI_USAGE", 2, "输出文件必须使用 .njub 扩展名");
+      const document = instantiateTemplate(template);
+      await writeAtomic(output, encodeNjub(document.deck, document.assets), options.force);
+      io.stdout(json({ ok: true, output, ...documentSummary(document.deck, document.assets) }));
+    });
+
+  program.command("extension-schema")
+    .description("输出声明式扩展协议")
+    .option("--json", "输出 JSON")
+    .action(() => io.stdout(json(z.toJSONSchema(extensionSchema, { target: "draft-7", io: "output" }))));
+
+  program.command("paper-schema").description("输出论文 JSON Schema").option("--json", "输出 JSON").action(() => io.stdout(json(z.toJSONSchema(paperSchema, { target: "draft-7", io: "output" }))));
+  program.command("create-paper")
+    .description("创建南京大学论文或课程报告")
+    .option("--spec <path>", "论文 JSON，省略则创建默认论文")
+    .option("--template <name>", "bachelor/master/doctor/report", "bachelor")
+    .option("--asset-root <path>", "图片资源目录")
+    .requiredOption("--output <path>", "输出 .njub")
+    .option("--force", "覆盖已有输出", false).option("--json", "输出 JSON")
+    .action(async (options: { spec?: string; template: string; output: string; assetRoot?: string; force: boolean }) => {
+      const output = resolve(io.cwd, options.output);
+      if (!output.toLowerCase().endsWith(".njub")) throw new CliFailure("CLI_USAGE", 2, "输出文件必须使用 .njub 扩展名");
+      const template = paperSchema.shape.settings.shape.template.parse(options.template);
+      const paper = options.spec ? paperSchema.parse(JSON.parse(await readFile(resolve(io.cwd, options.spec), "utf8"))) : createDefaultPaper(template);
+      const root = resolve(io.cwd, options.assetRoot ?? (options.spec ? dirname(options.spec) : "."));
+      const assets: DocumentAsset[] = [];
+      for (const path of referencedAssetPaths(paper)) {
+        const absolute = resolve(root, path);
+        const local = relative(root, absolute);
+        if (local.startsWith("..") || isAbsolute(local)) throw new CliFailure("ASSET_INVALID", 4, "图片超出资源目录");
+        assets.push({ path, mimeType: path.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg", content: Array.from(await readFile(absolute)) });
+      }
+      await writeAtomic(output, encodeNjub(paper, assets), options.force);
+      io.stdout(json({ ok: true, output, ...documentSummary(paper, assets) }));
+    });
+
+  program.command("extension-pack")
+    .description("校验并打包扩展 manifest")
+    .requiredOption("--manifest <path>", "JSON manifest")
+    .requiredOption("--output <path>", "输出 .njup")
+    .option("--force", "覆盖已有输出", false)
+    .option("--json", "输出 JSON")
+    .action(async (options: { manifest: string; output: string; force: boolean }) => {
+      const output = resolve(io.cwd, options.output);
+      if (!output.toLowerCase().endsWith(".njup")) throw new CliFailure("CLI_USAGE", 2, "输出文件必须使用 .njup 扩展名");
+      let extension;
+      try { extension = extensionSchema.parse(JSON.parse(await readFile(resolve(io.cwd, options.manifest), "utf8"))); }
+      catch (error) { throw new CliFailure("SPEC_INVALID", 3, String(error)); }
+      await writeAtomic(output, encodeExtension(extension), options.force);
+      io.stdout(json({ ok: true, output, id: extension.id }));
+    });
+
   program.command("create")
     .description("从声明式规格创建 NJUB 文稿")
     .requiredOption("--spec <path>", "JSON 规格文件，- 表示 stdin")
@@ -103,8 +174,9 @@ export async function runCli(argv: string[], io: CliIo): Promise<number> {
       } catch (error) {
         throw new CliFailure("DOCUMENT_INVALID", 3, error instanceof Error ? error.message : String(error));
       }
-      const result = { ok: true, ...documentSummary(document.deck, document.assets) };
-      io.stdout(options.json ? json(result) : `文稿有效：${document.deck.metadata.title}`);
+      const content = archiveContent(document);
+      const result = { ok: true, ...documentSummary(content, document.assets) };
+      io.stdout(options.json ? json(result) : `文稿有效：${content.metadata.title}`);
     });
 
   program.command("inspect")
@@ -121,10 +193,11 @@ export async function runCli(argv: string[], io: CliIo): Promise<number> {
       } catch (error) {
         throw new CliFailure("DOCUMENT_INVALID", 3, error instanceof Error ? error.message : String(error));
       }
+      const content = archiveContent(document);
       const result = options.document
-        ? { ok: true, document: document.deck, assets: document.assets.map(({ path: assetPath, mimeType, content }) => ({ path: assetPath, mimeType, bytes: content.length })) }
-        : { ok: true, ...documentSummary(document.deck, document.assets) };
-      io.stdout(options.json || options.document ? json(result) : `标题：${document.deck.metadata.title}\n章节：${document.deck.sections.length}`);
+        ? { ok: true, document: content, assets: document.assets.map(({ path: assetPath, mimeType, content }) => ({ path: assetPath, mimeType, bytes: content.length })) }
+        : { ok: true, ...documentSummary(content, document.assets) };
+      io.stdout(options.json || options.document ? json(result) : `标题：${content.metadata.title}\n章节：${content.sections.length}`);
     });
 
   try {

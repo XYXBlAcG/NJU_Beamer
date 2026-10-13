@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { createContext, useContext, type CSSProperties } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Columns3, Code2, EyeOff, FunctionSquare, GripVertical, List, ListOrdered, MessageSquare, PenTool, Plus, Table2, Trash2, Type } from "lucide-react";
@@ -6,22 +6,21 @@ import { createId, type Block, type BlockAppearance, type FontSize } from "../do
 import type { DocumentAsset } from "../domain/document";
 import { useEditorStore } from "../state/editorStore";
 import { RichTextEditor } from "./RichTextEditor";
+import { EditorContextMenu } from "./EditorContextMenu";
 import { SelectField } from "./SelectField";
 import { useEffect, useState } from "react";
 import { parseMixedText } from "../domain/mixedText";
 import { MixedTextPreview } from "./MixedTextPreview";
+import { LatexInput } from "./LatexInput";
+import { Copy } from "lucide-react";
+import { TikzEditor } from "./TikzEditor";
+import { TextFontField } from "./TextFontField";
+import { textFontCss } from "../domain/fonts";
+import { fontSizeOptions } from "../domain/typography";
 
 const blockNames: Record<Block["type"], string> = {
   text: "文本", list: "列表", formula: "公式", table: "表格", tikz: "TikZ", image: "图片", code: "代码", rawTex: "TeX", callout: "语义块", columns: "分栏",
 };
-
-const fontSizes = [
-  { value: "normal" as const, label: "正常" },
-  { value: "small" as const, label: "小" },
-  { value: "footnotesize" as const, label: "脚注大小" },
-  { value: "scriptsize" as const, label: "更小" },
-  { value: "tiny" as const, label: "最小" },
-];
 
 const formulaLayouts = [
   { value: "single" as const, label: "单行" },
@@ -47,6 +46,11 @@ const calloutStyles = [
   { value: "proof" as const, label: "证明" },
 ];
 
+export const BlockEditingContext = createContext<{
+  update: (id: string, block: Block) => void; remove: (id: string) => void; duplicate: (id: string) => void;
+  addToColumn: (id: string, type: Exclude<Block["type"], "image">) => void; assets: DocumentAsset[]; paper: boolean;
+} | undefined>(undefined);
+
 function EmbeddedImage({ asset, alt }: { asset?: DocumentAsset; alt: string }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
@@ -59,10 +63,18 @@ function EmbeddedImage({ asset, alt }: { asset?: DocumentAsset; alt: string }) {
 }
 
 export function BlockEditor({ block }: { block: Block }) {
-  const update = useEditorStore((state) => state.updateBlock);
-  const remove = useEditorStore((state) => state.removeBlock);
-  const addBlockToColumn = useEditorStore((state) => state.addBlockToColumn);
-  const imageAsset = useEditorStore((state) => block.type === "image" ? state.assets.find((asset) => asset.path === block.source) : undefined);
+  const [tikzOpen, setTikzOpen] = useState(false);
+  const binding = useContext(BlockEditingContext);
+  const defaultUpdate = useEditorStore((state) => state.updateBlock);
+  const defaultRemove = useEditorStore((state) => state.removeBlock);
+  const defaultDuplicate = useEditorStore((state) => state.duplicateBlock);
+  const defaultAddToColumn = useEditorStore((state) => state.addBlockToColumn);
+  const assets = useEditorStore((state) => state.assets);
+  const update = binding?.update ?? defaultUpdate;
+  const remove = binding?.remove ?? defaultRemove;
+  const duplicate = binding?.duplicate ?? defaultDuplicate;
+  const addBlockToColumn = binding?.addToColumn ?? defaultAddToColumn;
+  const imageAsset = block.type === "image" ? (binding?.assets ?? assets).find((asset) => asset.path === block.source) : undefined;
   const allowFrameBreaks = useEditorStore((state) => state.deck.sections.flatMap((section) => section.slides).find((slide) => slide.id === state.selectedSlideId)?.frame.allowFrameBreaks ?? false);
   const sortable = useSortable({ id: block.id });
   const style: CSSProperties = { transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition };
@@ -78,34 +90,43 @@ export function BlockEditor({ block }: { block: Block }) {
         : block.type === "formula" ? `$$${block.latex}$$` : "";
 
   return (
-    <article ref={sortable.setNodeRef} style={style} className={`block-editor ${block.hidden ? "hidden-block" : ""} ${sortable.isDragging ? "dragging" : ""}`}>
+    <EditorContextMenu commands={[
+      { id: "block.duplicate", label: "创建内容块副本", enabled: true, run: () => duplicate(block.id) },
+      { id: "block.hide", label: block.hidden ? "显示内容块" : "隐藏内容块", enabled: true, run: () => update(block.id, { ...block, hidden: !block.hidden }) },
+      ...(binding?.paper ? [{ id: "block.break", label: block.pageBreakBefore ? "取消段前分页" : "段前分页", enabled: true, run: () => update(block.id, { ...block, pageBreakBefore: !block.pageBreakBefore }) }] : []),
+      { id: "block.remove", label: "删除内容块", enabled: true, run: () => remove(block.id) },
+    ]}><article ref={sortable.setNodeRef} style={style} className={`block-editor ${block.hidden ? "hidden-block" : ""} ${sortable.isDragging ? "dragging" : ""}`}>
       <header>
         <span className="block-identity"><button className="drag-handle" aria-label="拖动内容块" {...sortable.attributes} {...sortable.listeners}><GripVertical size={16} /></button>{blockNames[block.type]}</span>
         <span className="block-controls">
-          <span className="block-font-size"><SelectField value={block.fontSize} options={fontSizes} onChange={updateFontSize} /></span>
-          <span className="block-appearance"><SelectField value={block.appearance} options={allowFrameBreaks ? appearanceModes.slice(0, 1) : appearanceModes} onChange={updateAppearance} /></span>
+          <span className="block-font-size"><SelectField value={block.fontSize} options={fontSizeOptions} onChange={updateFontSize} /></span>
+          {!binding?.paper && <span className="block-appearance"><SelectField value={block.appearance} options={allowFrameBreaks ? appearanceModes.slice(0, 1) : appearanceModes} onChange={updateAppearance} /></span>}
           <button className={`icon-button ${block.hidden ? "active" : ""}`} aria-label={block.hidden ? "显示内容块" : "隐藏内容块"} onClick={() => update(block.id, { ...block, hidden: !block.hidden })}><EyeOff size={15} /></button>
           <button className="icon-button danger" aria-label="删除内容块" onClick={() => remove(block.id)}><Trash2 size={15} /></button>
+          <button className="icon-button" aria-label="复制内容块" onClick={() => duplicate(block.id)}><Copy size={15} /></button>
         </span>
       </header>
+      {["text", "list", "table", "callout"].includes(block.type) && <TextFontField value={block.font} onChange={(font) => update(block.id, { ...block, font })} />}
+      <div className="block-content" style={{ fontFamily: textFontCss(block.font) }}>
+      {binding?.paper && <label className="toggle"><input type="checkbox" checked={block.pageBreakBefore ?? false} onChange={(event) => update(block.id, { ...block, pageBreakBefore: event.target.checked })} />段前分页</label>}
       {block.type === "text" && <RichTextEditor content={block.content} onChange={(content) => update(block.id, { ...block, content })} />}
       {block.type === "list" && <div className="field-stack">
-        <div className="inline-fields"><label className="toggle"><input type="checkbox" checked={block.ordered} onChange={(event) => update(block.id, { ...block, ordered: event.target.checked })} />有序列表</label><label>显示方式<SelectField value={block.reveal} options={allowFrameBreaks ? revealModes.slice(0, 1) : revealModes} onChange={(reveal) => update(block.id, { ...block, reveal })} /></label></div>
-        <textarea value={block.items.join("\n")} onChange={(event) => update(block.id, { ...block, items: event.target.value.split("\n") })} />
+        <div className="inline-fields"><label className="toggle"><input type="checkbox" checked={block.ordered} onChange={(event) => update(block.id, { ...block, ordered: event.target.checked })} />有序列表</label>{!binding?.paper && <label>显示方式<SelectField value={block.reveal} options={allowFrameBreaks ? revealModes.slice(0, 1) : revealModes} onChange={(reveal) => update(block.id, { ...block, reveal })} /></label>}</div>
+        <LatexInput multiline value={block.items.join("\n")} onChange={(value) => update(block.id, { ...block, items: value.split("\n") })} />
       </div>}
       {block.type === "formula" && <div className="field-stack">
         <div className="inline-fields"><label>排版<SelectField value={block.layout} options={formulaLayouts} onChange={(layout) => update(block.id, { ...block, layout })} /></label><label className="toggle"><input type="checkbox" checked={block.numbered} onChange={(event) => update(block.id, { ...block, numbered: event.target.checked })} />显示编号</label></div>
-        <textarea className="mono" value={block.latex} onChange={(event) => update(block.id, { ...block, latex: event.target.value })} />
+        <LatexInput multiline wrapped={false} className="mono" value={block.latex} onChange={(latex) => update(block.id, { ...block, latex })} />
       </div>}
       {block.type === "table" && <div className="field-stack">
         <label className="toggle"><input type="checkbox" checked={block.header} onChange={(event) => update(block.id, { ...block, header: event.target.checked })} />首行为表头</label>
         <div className="table-grid" style={{ "--columns": block.columns.length } as CSSProperties}>
-          {block.columns.map((cell, index) => <input key={`header-${index}`} value={cell} onChange={(event) => update(block.id, { ...block, columns: block.columns.map((value, cellIndex) => cellIndex === index ? event.target.value : value) })} />)}
-          {block.rows.flatMap((row, rowIndex) => block.columns.map((_, columnIndex) => <input key={`${rowIndex}-${columnIndex}`} value={row[columnIndex] ?? ""} onChange={(event) => update(block.id, { ...block, rows: block.rows.map((current, currentIndex) => currentIndex === rowIndex ? block.columns.map((__, index) => index === columnIndex ? event.target.value : current[index] ?? "") : current) })} />))}
+          {block.columns.map((cell, index) => <LatexInput key={`header-${index}`} value={cell} onChange={(next) => update(block.id, { ...block, columns: block.columns.map((value, cellIndex) => cellIndex === index ? next : value) })} />)}
+          {block.rows.flatMap((row, rowIndex) => block.columns.map((_, columnIndex) => <LatexInput key={`${rowIndex}-${columnIndex}`} value={row[columnIndex] ?? ""} onChange={(next) => update(block.id, { ...block, rows: block.rows.map((current, currentIndex) => currentIndex === rowIndex ? block.columns.map((__, index) => index === columnIndex ? next : current[index] ?? "") : current) })} />))}
         </div>
         <div className="table-actions"><button onClick={() => update(block.id, { ...block, rows: [...block.rows, block.columns.map(() => "")] })}>添加行</button><button disabled={block.rows.length === 0} onClick={() => update(block.id, { ...block, rows: block.rows.slice(0, -1) })}>删除末行</button><button onClick={() => update(block.id, { ...block, columns: [...block.columns, `列 ${block.columns.length + 1}`], rows: block.rows.map((row) => [...row, ""]) })}>添加列</button><button disabled={block.columns.length <= 1} onClick={() => update(block.id, { ...block, columns: block.columns.slice(0, -1), rows: block.rows.map((row) => row.slice(0, -1)) })}>删除末列</button></div>
       </div>}
-      {block.type === "tikz" && <textarea className="mono tall" value={block.source} onChange={(event) => update(block.id, { ...block, source: event.target.value })} />}
+      {block.type === "tikz" && <div className="field-stack"><button onClick={() => setTikzOpen(true)}><PenTool size={15} />可视化编辑</button><textarea className="mono tall" value={block.source} onChange={(event) => update(block.id, { ...block, source: event.target.value })} />{tikzOpen && <TikzEditor source={block.source} onApply={(source) => update(block.id, { ...block, source })} onClose={() => setTikzOpen(false)} />}</div>}
       {block.type === "image" && <div className="field-stack image-fields"><EmbeddedImage asset={imageAsset} alt={block.alt} /><span className="image-name">{block.source.split("/").pop()}</span><label>替代文本<input value={block.alt} onChange={(event) => update(block.id, { ...block, alt: event.target.value })} /></label><label>宽度<input type="range" min="0.1" max="1" step="0.05" value={block.width} onChange={(event) => update(block.id, { ...block, width: Number(event.target.value) })} /></label></div>}
       {block.type === "code" && <div className="field-stack"><label>语言<input value={block.language} onChange={(event) => update(block.id, { ...block, language: event.target.value })} /></label><textarea className="mono" value={block.content} onChange={(event) => update(block.id, { ...block, content: event.target.value })} /></div>}
       {block.type === "rawTex" && <textarea className="mono tall" value={block.source} onChange={(event) => update(block.id, { ...block, source: event.target.value })} />}
@@ -123,9 +144,11 @@ export function BlockEditor({ block }: { block: Block }) {
         </section>)}</div>
       </div>}
       {mathIssues.length > 0 && <div className="field-error" role="alert">{mathIssues[0].message}</div>}
+      {binding?.paper && ["image", "table", "formula", "tikz"].includes(block.type) && <div className="inline-fields">{block.type !== "formula" && <label>题注<input value={block.caption ?? ""} onChange={(event) => update(block.id, { ...block, caption: event.target.value })} /></label>}<label>交叉引用标签<input value={block.label ?? ""} onChange={(event) => update(block.id, { ...block, label: event.target.value.replace(/[^A-Za-z0-9:._-]/g, "") })} /></label></div>}
       {columnWidthIssue && <div className="field-error" role="alert">分栏宽度总和不能超过 1</div>}
       <MixedTextPreview value={previewText} />
-    </article>
+      </div>
+    </article></EditorContextMenu>
   );
 }
 

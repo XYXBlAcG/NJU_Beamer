@@ -1,14 +1,18 @@
 import { z } from "zod";
+import { defaultPageSize, pageSizeSchema, pageSizes } from "./pageSize";
+import { fontSizeSchema, type FontSize } from "./typography";
+export type { FontSize } from "./typography";
 
 const id = z.string().min(1);
-const fontSizeSchema = z.enum(["normal", "small", "footnotesize", "scriptsize", "tiny"]);
 export const blockAppearanceSchema = z.enum(["none", "uncover", "only"]);
 export const bodyFontSchema = z.enum(["song", "hei", "kai", "fangsong"]);
 export const mathFontPresetSchema = z.enum(["latin-modern", "times", "custom"]);
 export const themeModeSchema = z.enum(["nju", "default", "custom"]);
 export const texIdentifierSchema = z.string().regex(/^[A-Za-z0-9._-]*$/);
 export const customMathFontNameSchema = z.string().regex(/^[^{}\\\r\n]*$/);
-const blockBase = { id, hidden: z.boolean(), fontSize: fontSizeSchema, appearance: blockAppearanceSchema };
+export const textFontSchema = z.object({ preset: z.enum(["song", "hei", "kai", "fangsong", "custom"]), customName: customMathFontNameSchema.default(""), cjkName: customMathFontNameSchema.default("") });
+export type TextFont = z.infer<typeof textFontSchema>;
+const blockBase = { id, hidden: z.boolean(), fontSize: fontSizeSchema, appearance: blockAppearanceSchema, font: textFontSchema.optional(), caption: z.string().optional(), label: z.string().regex(/^[A-Za-z0-9:._-]*$/).optional(), pageBreakBefore: z.boolean().optional() };
 
 const richMarkSchema = z.object({ type: z.string(), attrs: z.record(z.string(), z.unknown()).optional() });
 
@@ -30,10 +34,9 @@ const richNodeSchema: z.ZodType<RichTextNode> = z.lazy(() => z.object({
 
 export const richTextSchema = z.object({ type: z.literal("doc"), content: z.array(richNodeSchema).optional() });
 export type RichTextDocument = z.infer<typeof richTextSchema>;
-export type FontSize = z.infer<typeof fontSizeSchema>;
 export type BlockAppearance = z.infer<typeof blockAppearanceSchema>;
 
-type BlockBase = { id: string; hidden: boolean; fontSize: FontSize; appearance: BlockAppearance };
+type BlockBase = { id: string; hidden: boolean; fontSize: FontSize; appearance: BlockAppearance; font?: TextFont; caption?: string; label?: string; pageBreakBefore?: boolean };
 export type Block = BlockBase & (
   | { type: "text"; content: RichTextDocument }
   | { type: "list"; ordered: boolean; reveal: "none" | "overlay-alert" | "pause"; items: string[] }
@@ -76,8 +79,9 @@ export type FrameOptions = z.infer<typeof frameOptionsSchema>;
 export const defaultFrameOptions: FrameOptions = { plain: false, allowFrameBreaks: false, shrink: false, label: "" };
 export const slideSchema = z.object({
   id,
+  hidden: z.boolean().optional(),
   title: z.string(),
-  kind: z.enum(["title", "contents", "content"]),
+  kind: z.enum(["title", "contents", "content", "ending"]),
   blocks: z.array(blockSchema),
   frame: frameOptionsSchema,
   notes: z.string(),
@@ -103,6 +107,7 @@ export const themeSchema = z.object({
   innerTheme: texIdentifierSchema,
   outerTheme: texIdentifierSchema,
 });
+export const themeFileSchema = z.object({ path: z.string().regex(/^theme\/[A-Za-z0-9._-]+\.(sty|tex)$/), content: z.string().max(500000) });
 
 const hasOverlay = (block: Block): boolean => block.appearance !== "none"
   || (block.type === "list" && block.reveal !== "none")
@@ -115,8 +120,8 @@ const visitBlocks = (blocks: Block[], visit: (block: Block) => void) => {
   }
 };
 
-const deckV4Schema = z.object({
-  formatVersion: z.literal(4),
+const deckV5Schema = z.object({
+  formatVersion: z.literal(5),
   metadata: z.object({ title: z.string(), subtitle: z.string(), author: z.string(), institute: z.string(), date: z.string() }),
   settings: z.object({
     sectionTitleSlides: z.boolean(),
@@ -125,11 +130,16 @@ const deckV4Schema = z.object({
     theme: themeSchema.default(defaultTheme),
     documentClassOptions: z.string().default(""),
     preamble: z.string().default(""),
+    pageSize: pageSizeSchema.default(defaultPageSize),
+    themeFiles: z.array(themeFileSchema).default([]),
+    themePreamble: z.string().default(""),
     packages: z.array(z.object({ name: packageName, options: z.string() })),
     tikzLibraries: z.array(packageName),
   }),
   sections: z.array(sectionSchema),
 }).superRefine((deck, context) => {
+  if (new Set(deck.settings.themeFiles.map((file) => file.path.toLowerCase())).size !== deck.settings.themeFiles.length) context.addIssue({ code: "custom", path: ["settings", "themeFiles"], message: "主题资源路径重复" });
+  if (/(?:^|,)\s*aspectratio\s*=/.test(deck.settings.documentClassOptions)) context.addIssue({ code: "custom", path: ["settings", "documentClassOptions"], message: "请通过页面尺寸设置比例" });
   deck.sections.forEach((section, sectionIndex) => section.slides.forEach((slide, slideIndex) => {
     if (slide.frame.allowFrameBreaks && slide.blocks.some(hasOverlay)) {
       context.addIssue({ code: "custom", path: ["sections", sectionIndex, "slides", slideIndex, "frame", "allowFrameBreaks"], message: "自动分页页面不能使用逐项或逐块显示" });
@@ -154,10 +164,15 @@ const migrateBlock = (value: unknown): unknown => {
   return block;
 };
 const migrateDocument = (value: unknown) => {
-  if (!isRecord(value) || value.formatVersion !== 3 || !Array.isArray(value.sections)) return value;
+  if (!isRecord(value) || ![3, 4].includes(Number(value.formatVersion)) || !Array.isArray(value.sections)) return value;
+  const settings = isRecord(value.settings) ? value.settings : {};
+  const options = typeof settings.documentClassOptions === "string" ? settings.documentClassOptions : "";
+  const ratio = options.match(/(?:^|,)\s*aspectratio\s*=\s*(\d+)/)?.[1];
+  const preset = pageSizes.find((entry) => entry.tex === ratio);
   return {
     ...value,
-    formatVersion: 4,
+    formatVersion: 5,
+    settings: { ...settings, pageSize: preset ? { preset: preset.value, widthMm: preset.widthMm, heightMm: preset.heightMm } : settings.pageSize ?? defaultPageSize, documentClassOptions: options.split(",").filter((option) => !/^\s*aspectratio\s*=/.test(option)).join(",") },
     sections: value.sections.map((section) => isRecord(section) && Array.isArray(section.slides)
       ? {
         ...section,
@@ -174,8 +189,8 @@ const migrateDocument = (value: unknown) => {
   };
 };
 
-export const deckSchema = z.preprocess(migrateDocument, deckV4Schema);
-export type Deck = z.infer<typeof deckV4Schema>;
+export const deckSchema = z.preprocess(migrateDocument, deckV5Schema);
+export type Deck = z.infer<typeof deckV5Schema>;
 export type BodyFont = z.infer<typeof bodyFontSchema>;
 export type MathFontPreset = z.infer<typeof mathFontPresetSchema>;
 export type ThemeMode = z.infer<typeof themeModeSchema>;
@@ -187,7 +202,7 @@ export const richText = (text: string): RichTextDocument => ({
 });
 
 export const createDefaultDeck = (): Deck => ({
-  formatVersion: 4,
+  formatVersion: 5,
   metadata: { title: "标题", subtitle: "副标题", author: "作者", institute: "南京大学", date: "\\today" },
   settings: {
     sectionTitleSlides: false,
@@ -196,6 +211,9 @@ export const createDefaultDeck = (): Deck => ({
     theme: { ...defaultTheme },
     documentClassOptions: "",
     preamble: "",
+    pageSize: { ...defaultPageSize },
+    themeFiles: [],
+    themePreamble: "",
     packages: [],
     tikzLibraries: [],
   },

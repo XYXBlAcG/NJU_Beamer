@@ -1,11 +1,12 @@
-import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
-import { Image } from "lucide-react";
+import { useState, type ClipboardEvent, type DragEvent, type CSSProperties } from "react";
+import { pageRatio } from "../domain/pageSize";
+import { AddBlockToolbar } from "./AddBlockToolbar";
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { Deck, Slide } from "../domain/deck";
 import { importImageFile } from "../domain/imageImport";
 import { useEditorStore } from "../state/editorStore";
-import { BlockEditor, blockActions } from "./BlockEditor";
+import { BlockEditor } from "./BlockEditor";
 
 type Props = {
   slide: Slide;
@@ -27,9 +28,9 @@ export function SlideEditor({ slide }: Props) {
   const addImage = useEditorStore((state) => state.addImage);
   const reorderBlock = useEditorStore((state) => state.reorderBlock);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
-  const imageInput = useRef<HTMLInputElement>(null);
   const [draggingImage, setDraggingImage] = useState(false);
   const [imageError, setImageError] = useState("");
+  const pageStyle = { "--page-ratio": pageRatio(deck.settings.pageSize) } as CSSProperties;
 
   const importFiles = async (files: File[]) => {
     setImageError("");
@@ -60,7 +61,7 @@ export function SlideEditor({ slide }: Props) {
 
   if (slide.kind === "title") {
     return (
-      <div className="editor-page title-editor">
+      <div className="editor-page title-editor" style={pageStyle}>
         {(Object.entries(deck.metadata) as [keyof Deck["metadata"], string][]).map(([key, value]) => (
           <label key={key}>{metadataLabels[key]}<input className={key === "title" ? "title-input" : ""} value={value} onChange={(event) => updateMetadata(key, event.target.value)} /></label>
         ))}
@@ -69,12 +70,13 @@ export function SlideEditor({ slide }: Props) {
   }
 
   if (slide.kind === "contents") {
-    return <div className="editor-page contents-editor"><strong>目录页</strong><span>目录内容将根据章节名称自动生成。</span></div>;
+    return <div className="editor-page contents-editor" style={pageStyle}><strong>目录页</strong><span>目录内容将根据章节名称自动生成。</span></div>;
   }
 
   return (
     <div
-      className={`editor-page content-editor ${draggingImage ? "image-dragging" : ""}`}
+      className={`editor-page content-editor ${slide.kind === "ending" ? "ending-editor" : ""} ${draggingImage ? "image-dragging" : ""}`}
+      style={pageStyle}
       onDragEnter={(event) => { if (Array.from(event.dataTransfer.types).includes("Files")) setDraggingImage(true); }}
       onDragOver={(event) => { if (Array.from(event.dataTransfer.types).includes("Files")) event.preventDefault(); }}
       onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDraggingImage(false); }}
@@ -87,11 +89,7 @@ export function SlideEditor({ slide }: Props) {
           <div className="editor-blocks">{slide.blocks.map((block) => <BlockEditor key={block.id} block={block} />)}</div>
         </SortableContext>
       </DndContext>
-      <div className="add-blocks editor-add-blocks">
-        {blockActions.map(({ type, label, icon: Icon }) => <button key={type} onClick={() => addBlock(type)}><Icon size={16} />{label}</button>)}
-        <button onClick={() => imageInput.current?.click()}><Image size={16} />图片</button>
-        <input ref={imageInput} className="hidden-file-input" type="file" accept="image/png,image/jpeg" multiple onChange={(event) => { void importFiles(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
-      </div>
+      <AddBlockToolbar onAdd={addBlock} onImages={(files) => void importFiles(files)} />
       {imageError && <div className="image-import-error" role="alert">{imageError}</div>}
       {draggingImage && <div className="image-drop-hint">松开以插入图片</div>}
     </div>

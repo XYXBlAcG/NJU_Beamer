@@ -36,7 +36,8 @@ describe("njub CLI", () => {
 
     expect(await runCli(["node", "njub", "create", "--spec", specPath, "--output", outputPath, "--json"], io)).toBe(0);
     expect(JSON.parse(stdout.pop() ?? "")).toMatchObject({ ok: true, output: outputPath, title: "CLI 演示", slides: 2 });
-    expect(decodeNjub(new Uint8Array(await readFile(outputPath))).deck.metadata.title).toBe("CLI 演示");
+    const document = decodeNjub(new Uint8Array(await readFile(outputPath)));
+    expect("deck" in document && document.deck.metadata.title).toBe("CLI 演示");
 
     expect(await runCli(["node", "njub", "validate", outputPath, "--json"], io)).toBe(0);
     expect(JSON.parse(stdout.pop() ?? "")).toMatchObject({ ok: true, title: "CLI 演示" });

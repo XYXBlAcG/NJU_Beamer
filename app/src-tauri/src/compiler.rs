@@ -76,13 +76,6 @@ fn tex_toolchain() -> Result<TexToolchain, CompileError> {
     Ok(TexToolchain { latexmk, path })
 }
 
-fn prepare_output_directory(output_dir: &Path) -> Result<(), std::io::Error> {
-    if output_dir.exists() {
-        fs::remove_dir_all(output_dir)?;
-    }
-    fs::create_dir_all(output_dir)
-}
-
 pub fn compile(
     source: &str,
     workspace: &Path,
@@ -94,12 +87,20 @@ pub fn compile(
             workspace.display().to_string(),
         ));
     }
+    fs::create_dir_all(work_dir)?;
+    let lock = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(work_dir.join("compile.lock"))?;
+    lock.lock()?;
     let document_dir = work_dir.join("document");
     document::materialize(&document_dir, assets).map_err(|error| std::io::Error::other(error))?;
     let output_dir = work_dir.join("build");
-    prepare_output_directory(&output_dir)?;
+    fs::create_dir_all(&output_dir)?;
     let source_path = document_dir.join("preview.tex");
-    fs::write(&source_path, source)?;
+    crate::binary_file::write_if_changed(&source_path, source.as_bytes())?;
     let toolchain = tex_toolchain()?;
 
     let output = Command::new(toolchain.latexmk)
@@ -108,7 +109,9 @@ pub fn compile(
         .env("TEXINPUTS", format!("{}//:", workspace.display()))
         .args([
             "-xelatex",
+            "-latexoption=-no-shell-escape",
             "-interaction=nonstopmode",
+            "-halt-on-error",
             "-file-line-error",
             "-synctex=1",
         ])
@@ -121,6 +124,13 @@ pub fn compile(
         log.push_str(&String::from_utf8_lossy(&output.stderr));
     }
     let pdf_path = output_dir.join("preview.pdf");
+    if !output.status.success() {
+        for path in [&pdf_path, &output_dir.join("preview.fdb_latexmk")] {
+            if path.exists() {
+                fs::remove_file(path)?;
+            }
+        }
+    }
     let pdf = if output.status.success() && pdf_path.is_file() {
         Some(fs::read(pdf_path)?)
     } else {
@@ -158,21 +168,83 @@ mod tests {
     }
 
     #[test]
-    fn removes_stale_build_artifacts_before_compiling() {
-        let cache = tempfile::tempdir().unwrap();
-        let output = cache.path().join("build");
-        fs::create_dir_all(&output).unwrap();
-        fs::write(output.join("preview.log"), "stale").unwrap();
-
-        prepare_output_directory(&output).unwrap();
-
-        assert!(output.is_dir());
-        assert!(!output.join("preview.log").exists());
+    fn default_template_is_present() {
+        assert!(default_template_directory().join("NJU.sty").is_file());
     }
 
     #[test]
-    fn default_template_is_present() {
-        assert!(default_template_directory().join("NJU.sty").is_file());
+    fn preserves_incremental_results_and_rejects_stale_pdf_after_failure() {
+        let cache = tempfile::tempdir().unwrap();
+        let source = "\\documentclass{article}\\begin{document}Test\\end{document}";
+        let first = compile(source, &default_template_directory(), cache.path(), &[]).unwrap();
+        assert!(first.success, "{}", first.log);
+        let pdf_path = cache.path().join("build/preview.pdf");
+        let modified = fs::metadata(&pdf_path).unwrap().modified().unwrap();
+        let second = compile(source, &default_template_directory(), cache.path(), &[]).unwrap();
+        assert!(second.success, "{}", second.log);
+        assert_eq!(
+            fs::metadata(&pdf_path).unwrap().modified().unwrap(),
+            modified
+        );
+        let failure = compile(
+            "\\documentclass{article}\\begin{document}\\undefinedCommand\\end{document}",
+            &default_template_directory(),
+            cache.path(),
+            &[],
+        )
+        .unwrap();
+        assert!(!failure.success);
+        assert!(failure.pdf.is_none());
+        assert!(!pdf_path.exists());
+        let repaired = compile(source, &default_template_directory(), cache.path(), &[]).unwrap();
+        assert!(repaired.success, "{}", repaired.log);
+    }
+
+    #[test]
+    #[ignore]
+    fn benchmarks_fifty_page_kuang_deck() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.tmp/compile-performance");
+        let assets: Vec<DocumentAsset> =
+            serde_json::from_slice(&fs::read(root.join("assets.json")).unwrap()).unwrap();
+        let new_only = env::var_os("NJU_BENCH_NEW_ONLY").is_some();
+        let before = if new_only {
+            String::new()
+        } else {
+            fs::read_to_string(root.join("before.tex")).unwrap()
+        };
+        let after = fs::read_to_string(root.join("after.tex")).unwrap();
+        let old_cache = tempfile::tempdir_in(&root).unwrap().keep();
+        let new_cache = tempfile::tempdir_in(&root).unwrap().keep();
+        let changed = after.replace("C++ STL 中的顺序容器", "C++ STL 顺序容器");
+        let mut measurements = Vec::new();
+        for (name, source, cache) in [
+            ("before", &before, &old_cache),
+            ("cold", &after, &new_cache),
+            ("unchanged", &after, &new_cache),
+            ("edited", &changed, &new_cache),
+        ] {
+            if new_only && name == "before" {
+                continue;
+            }
+            let start = std::time::Instant::now();
+            let result = compile(source, &default_template_directory(), cache, &assets).unwrap();
+            assert!(result.success, "{}", result.log);
+            let seconds = start.elapsed().as_secs_f64();
+            let bytes = result.pdf.unwrap().len();
+            println!("{name}: {seconds:.3}s, {bytes} bytes");
+            measurements.push(
+                serde_json::json!({"name":name,"seconds":seconds,"pdfBytes":bytes,"cache":cache}),
+            );
+        }
+        fs::write(
+            root.join(if new_only {
+                "final-measurements.json"
+            } else {
+                "measurements.json"
+            }),
+            serde_json::to_vec_pretty(&measurements).unwrap(),
+        )
+        .unwrap();
     }
 
     #[test]

@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type { BodyFont, MathFontPreset, ThemeMode } from "../domain/deck";
 import { useEditorStore } from "../state/editorStore";
 import { SelectField } from "./SelectField";
+import { pageSizes } from "../domain/pageSize";
 
 const bodyFonts: Array<{ value: BodyFont; label: string }> = [
   { value: "song", label: "宋体" },
@@ -28,6 +29,11 @@ export function DocumentSettings() {
 
   return (
     <div className="field-stack document-settings">
+      <label>页面尺寸<SelectField value={settings.pageSize.preset} options={pageSizes.map((size) => ({ value: size.value, label: size.label }))} onChange={(preset) => {
+        const size = pageSizes.find((item) => item.value === preset)!;
+        updateSettings({ pageSize: { preset, widthMm: size.widthMm, heightMm: size.heightMm } });
+      }} /></label>
+      {settings.pageSize.preset === "custom" && <div className="theme-grid">{(["widthMm", "heightMm"] as const).map((key) => <label key={key}>{key === "widthMm" ? "宽度 (mm)" : "高度 (mm)"}<input type="number" min={50} max={1000} value={settings.pageSize[key]} onChange={(event) => updateSettings({ pageSize: { ...settings.pageSize, [key]: Number(event.target.value) } })} /></label>)}</div>}
       <label className="toggle"><input type="checkbox" checked={settings.sectionTitleSlides} onChange={(event) => updateSettings({ sectionTitleSlides: event.target.checked })} />章节开始时生成单独标题页</label>
       <label>正文字体<SelectField value={settings.bodyFont} options={bodyFonts} onChange={(bodyFont) => updateSettings({ bodyFont })} /></label>
       <label>数学字体<SelectField value={settings.mathFont.preset} options={mathFonts} onChange={(preset) => updateMathFont({ preset })} /></label>
@@ -40,7 +46,7 @@ export function DocumentSettings() {
         <label>Inner theme<input value={settings.theme.innerTheme} placeholder="circles" onChange={(event) => updateTheme({ innerTheme: event.target.value.replace(/[^A-Za-z0-9._-]/g, "") })} /></label>
         <label>Outer theme<input value={settings.theme.outerTheme} placeholder="miniframes" onChange={(event) => updateTheme({ outerTheme: event.target.value.replace(/[^A-Za-z0-9._-]/g, "") })} /></label>
       </div>}
-      <label>Document class 选项<input value={settings.documentClassOptions} placeholder="aspectratio=169" onChange={(event) => updateSettings({ documentClassOptions: event.target.value })} /></label>
+      <label>Document class 选项<input value={settings.documentClassOptions} placeholder="handout" onChange={(event) => updateSettings({ documentClassOptions: event.target.value })} /></label>
       <label>TikZ 库<input value={settings.tikzLibraries.join(", ")} placeholder="arrows.meta, positioning" onChange={(event) => updateSettings({ tikzLibraries: event.target.value.split(",").map((value) => value.trim()).filter((value) => /^[A-Za-z0-9._-]+$/.test(value)) })} /></label>
       <div className="settings-heading"><span>LaTeX 包</span><button onClick={() => updateSettings({ packages: [...settings.packages, { name: "amsfonts", options: "" }] })}><Plus size={14} />添加</button></div>
       {settings.packages.map((entry, index) => <div className="package-row" key={index}>

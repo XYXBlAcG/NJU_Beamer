@@ -1,0 +1,2195 @@
+{
+  "specVersion": 2,
+  "metadata": {
+    "title": "NJU Beamer GUI Editor",
+    "subtitle": "功能演示 · 使用手册 · 开发指南",
+    "author": "NJU Beamer",
+    "institute": "南京大学",
+    "date": "2026 年 10 月"
+  },
+  "settings": {
+    "sectionTitleSlides": true,
+    "bodyFont": "song",
+    "mathFont": {
+      "preset": "times"
+    },
+    "pageSize": {
+      "preset": "16:9",
+      "widthMm": 160,
+      "heightMm": 90
+    },
+    "tikzLibraries": [
+      "arrows.meta"
+    ],
+    "packages": [
+      {
+        "name": "booktabs"
+      }
+    ],
+    "preamble": "\\definecolor{HandbookPurple}{HTML}{663399}\n\\newcommand{\\HandbookTerm}[1]{\\textcolor{HandbookPurple}{#1}}\n\\setbeamertemplate{headline}{}"
+  },
+  "sections": [
+    {
+      "title": "开始使用",
+      "slides": [
+        {
+          "kind": "title"
+        },
+        {
+          "kind": "contents",
+          "title": "从第一次打开到扩展开发"
+        },
+        {
+          "title": "这是一份可以亲自修改的手册",
+          "blocks": [
+            {
+              "type": "callout",
+              "title": "NJU Beamer GUI Editor",
+              "content": "用结构化内容编辑幻灯片与论文，用 XeLaTeX 生成可靠的排版。",
+              "style": "block",
+              "fontSize": "small"
+            },
+            {
+              "type": "list",
+              "items": [
+                "本文件含所有现有内容块的真实示例，可选中、改写、复制和拖动。",
+                "插图来自软件素材库的真实编译预览，以及项目已有示例图片。",
+                "动态页面请编译后逐步播放；编辑模式中的“隐藏练习页”不会进入 PDF。",
+                "论文使用独立文稿类型，本手册展示真实论文封面并给出创建与编辑步骤。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“这是一份可以亲自修改的手册”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "第一次启动与文稿类型",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "幻灯片",
+                      "content": "欢迎页选择“创建幻灯片”，指定文件名与保存位置；适合演讲、课程、答辩。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "以内容页为单位编辑，支持章节标题页、叠加动画和全屏播放。",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "论文 / 文档",
+                      "content": "欢迎页选择“创建文档”，再选择本科、硕士、博士或课程报告模板。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "以章节为单位编辑，编译决定真实纸张分页；与幻灯片共用内容块和资源管理。",
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rawTex",
+              "source": "\\par\\medskip"
+            },
+            {
+              "type": "text",
+              "content": "也可以“打开项目”或选择最近文稿；安装后的 .njub 可由 Finder 双击打开。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“第一次启动与文稿类型”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "五分钟完成第一次编辑",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "打开本文件，在左栏选中任意内容页。",
+                "在中间编辑文字或添加块；右栏切换“页面”“文稿”属性。",
+                "按 Command+S 保存，再按 Command+Enter 手动编译。",
+                "检查多页网格或系统 PDF 预览；按 Escape 返回编辑。",
+                "换一张图片、增加一页，再保存与导出 TeX 包。"
+              ],
+              "ordered": true,
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“五分钟完成第一次编辑”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "保存、替换文稿与关闭窗口",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "新建、打开其他文件、关闭窗口或退出前，未保存改动会先询问。",
+                "选择“保存并继续/退出”“不保存并继续/退出”或“取消”；保存对话框取消不会丢弃编辑。",
+                "Command+Shift+S 另存为，便于从本手册创建自己的副本。",
+                "文稿撤销与重做：Command+Z / Command+Shift+Z。",
+                "恢复副本与主动保存文件独立；恢复副本不等于已保存的正式文稿。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“保存、替换文稿与关闭窗口”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "常用快捷键与原生菜单",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "操作",
+                "macOS 快捷键"
+              ],
+              "rows": [
+                [
+                  "新建 / 打开 / 保存",
+                  "Command+N / O / S"
+                ],
+                [
+                  "另存为 / 关闭窗口",
+                  "Command+Shift+S / Command+W"
+                ],
+                [
+                  "编译 / 返回编辑",
+                  "Command+Enter / Escape"
+                ],
+                [
+                  "命令面板与最近文稿",
+                  "Command+K"
+                ],
+                [
+                  "左栏复制 / 剪切 / 粘贴",
+                  "Command+C / X / V"
+                ],
+                [
+                  "左栏创建副本 / 全选",
+                  "Command+D / A"
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "页面快捷键在左栏操作；正文输入框保留文字编辑快捷键。macOS 原生菜单与软件内工具栏共用命令。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“常用快捷键与原生菜单”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    },
+    {
+      "title": "文字与数学",
+      "slides": [
+        {
+          "title": "真实富文本：粗体、斜体、颜色与链接",
+          "blocks": [
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "普通宋体  "
+                  },
+                  {
+                    "text": "粗体宋体  ",
+                    "bold": true
+                  },
+                  {
+                    "text": "倾斜宋体  ",
+                    "italic": true
+                  },
+                  {
+                    "text": "粗斜体",
+                    "bold": true,
+                    "italic": true
+                  }
+                ],
+                [
+                  {
+                    "text": "删除线 ",
+                    "strike": true
+                  },
+                  {
+                    "text": "行内代码 ",
+                    "code": true
+                  },
+                  {
+                    "text": "南京紫 ",
+                    "color": "#663399"
+                  },
+                  {
+                    "text": "强调红",
+                    "color": "#C62828"
+                  }
+                ],
+                [
+                  {
+                    "text": "项目主页",
+                    "href": "https://github.com/XYXBlAcG/NJU_Beamer"
+                  },
+                  {
+                    "text": "：在正文中选中文字，使用工具栏添加超链接。"
+                  }
+                ]
+              ]
+            },
+            {
+              "type": "callout",
+              "title": "操作方法",
+              "content": "选中文字后使用富文本工具栏切换样式、文字颜色与链接；系统 PDF 预览保留链接交互。",
+              "style": "block",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "宋体的斜体仍是宋体倾斜，不会自动替换成楷体。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“真实富文本：粗体、斜体、颜色与链接”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "混合公式：不必专门创建公式块",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "文字内直接写 \\(n^{n-2}\\)，也可写 $a^2+b^2=c^2$。独立展示公式：$$\\sum_{k=1}^{n}k=\\frac{n(n+1)}{2}$$"
+            },
+            {
+              "type": "list",
+              "items": [
+                "编号项也支持 \\(\\binom{n}{2}\\) 与 $\\alpha+\\beta$。",
+                "语义块与脚注同样支持公式定界符。"
+              ],
+              "ordered": true,
+              "fontSize": "small"
+            },
+            {
+              "type": "code",
+              "content": "行内：\\(x^2\\) 或 $x^2$\n独立展示：$$\\int_0^1 x\\,dx=\\frac12$$",
+              "language": "",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“混合公式：不必专门创建公式块”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "脚注：来源、补充说明与公式",
+          "blocks": [
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "凯莱公式给出标号树的数量"
+                  },
+                  {
+                    "footnote": "当 \\(n\\ge 2\\) 时，树的数目为 \\(n^{n-2}\\)。脚注内容可含混合公式。"
+                  },
+                  {
+                    "text": "；脚注不会打断主线。"
+                  }
+                ],
+                [
+                  {
+                    "text": "在富文本工具栏选择脚注，输入补充说明；需要时再次编辑脚注节点。"
+                  }
+                ]
+              ]
+            },
+            {
+              "type": "callout",
+              "title": "实践",
+              "content": "复制本页，修改脚注内容并重新编译；页底会出现对应脚注。",
+              "style": "block",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“脚注：来源、补充说明与公式”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "公式助手：点击符号，套用结构",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "items": [
+                        "在富文本工具栏或公式、列表、表格输入旁唤出助手。",
+                        "搜索或按分类选择希腊字母、关系、箭头与运算。",
+                        "先选中已有表达式，再点击分数、根式、上标等结构。",
+                        "收藏常用符号；扩展包可增加专用公式。"
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "formula",
+                      "latex": "\\frac{\\alpha+\\beta}{\\sqrt{1+x^2}}"
+                    },
+                    {
+                      "type": "formula",
+                      "latex": "\\mathbb{E}[X]=\\sum_{k}k\\,P(X=k)"
+                    },
+                    {
+                      "type": "formula",
+                      "latex": "\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}",
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“公式助手：点击符号，套用结构”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "单行、编号与对齐公式",
+          "blocks": [
+            {
+              "type": "formula",
+              "latex": "T_n=n^{n-2}",
+              "numbered": true
+            },
+            {
+              "type": "formula",
+              "latex": "(x+y)^2 &= x^2+2xy+y^2 \\\\ (x-y)^2 &= x^2-2xy+y^2",
+              "layout": "aligned",
+              "numbered": true,
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "公式块选择“单行”或“对齐”，按需要开启编号；对齐点由 & 指定，换行由两条反斜线指定。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“单行、编号与对齐公式”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "长公式：多行居中而非左右飘移",
+          "blocks": [
+            {
+              "type": "formula",
+              "latex": "\\log P(X_1,\\ldots,X_n) \\\\ =\\sum_{i=1}^{n}\\log P(X_i\\mid X_1,\\ldots,X_{i-1}) \\\\ =\\sum_{i=1}^{n}\\log P(X_i\\mid X_{i-1})",
+              "layout": "multline",
+              "numbered": true,
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "排版选择",
+              "content": "“多行”将每一行居中；需要等号对齐时使用“对齐”并写 &。过宽公式可进一步拆行或调整块字号。",
+              "style": "block",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“长公式：多行居中而非左右飘移”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "表格：真实单元格与数学内容",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "对象",
+                "公式",
+                "示例"
+              ],
+              "rows": [
+                [
+                  "路径",
+                  "\\(P_n\\)",
+                  "$n-1$ 条边"
+                ],
+                [
+                  "完全图",
+                  "$$\\binom{n}{2}$$",
+                  "$K_4$ 有 6 条边"
+                ],
+                [
+                  "标号树",
+                  "\\(n^{n-2}\\)",
+                  "$T_4=16$"
+                ],
+                [
+                  "根树",
+                  "$n^{n-1}$",
+                  "$R_4=64$"
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "选择表格块，增删行列并编辑单元格。列表与表格中的独立公式会转为适合单元格的展示样式。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“表格：真实单元格与数学内容”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "字体、数学字体与每块字号",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "items": [
+                        "文稿属性选择宋体、黑体、楷体或仿宋。",
+                        "数学字体：Latin Modern、Times 风格或自定义字体。",
+                        "Times 风格使用 TeX Gyre Termes Math，不是把 Times New Roman 直接当数学字体。",
+                        "自定义数学字体需要已安装且具备 OpenType MATH 表。"
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "text",
+                      "content": "normal：正文",
+                      "fontSize": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "content": "small：紧凑说明",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "footnotesize：补充材料",
+                      "fontSize": "footnotesize"
+                    },
+                    {
+                      "type": "text",
+                      "content": "scriptsize：短注释",
+                      "fontSize": "scriptsize"
+                    },
+                    {
+                      "type": "text",
+                      "content": "tiny：不宜大量使用",
+                      "fontSize": "tiny"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rawTex",
+              "source": "\\par\\medskip"
+            },
+            {
+              "type": "text",
+              "content": "本手册使用宋体与 Times 风格数学字体；修改文稿字体后再次编译即可比较。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“字体、数学字体与每块字号”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    },
+    {
+      "title": "结构、动画与布局",
+      "slides": [
+        {
+          "title": "普通块、警示块与示例块",
+          "blocks": [
+            {
+              "type": "callout",
+              "title": "普通块",
+              "content": "用于定义、结论和结构性说明；这里可以写 \\(f(x)=x^2\\)。",
+              "style": "block",
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "警示块",
+              "content": "注意假设、边界条件或容易混淆的概念。",
+              "style": "alert",
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "示例块",
+              "content": "当 n=4 时，标号树共有 \\(4^{4-2}=16\\) 棵。",
+              "style": "example",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“普通块、警示块与示例块”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "定理块与证明块",
+          "blocks": [
+            {
+              "type": "callout",
+              "title": "凯莱公式",
+              "content": "对于 \\(n\\ge 2\\)，顶点为固定 n 元集合的树共有 \\(n^{n-2}\\) 棵。",
+              "style": "theorem",
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "双重计数的思想",
+              "content": "选择同一个集合，从两个角度计数。两种表达式相等，得到所需恒等式。",
+              "style": "proof",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "在块属性中切换普通、警示、示例、定理或证明；其外观由当前 Beamer 主题决定。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“定理块与证明块”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "逐项出现：新增内容自动强调",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "先定义同一个计数对象。",
+                "从第一个角度计数。",
+                "再从第二个角度计数。",
+                "比较两个结果，得到结论。"
+              ],
+              "reveal": "overlay-alert",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "本页列表启用了 overlay-alert。编译后网格显示多个物理页；播放时逐项出现并强调新项目。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“逐项出现：新增内容自动强调”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "编号列表也可以逐项出现",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "选择固定顶点集合 [n]。",
+                "给一棵树选择一个根。",
+                "对同一组结构进行两次计数。"
+              ],
+              "ordered": true,
+              "reveal": "pause",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "本页使用 pause；普通无动画列表将“逐项显示”设为关闭。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“编号列表也可以逐项出现”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "逐块显现：保留先前内容",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "开始播放本页，观察下方块依次出现。",
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "第一步",
+              "content": "选取研究对象：固定顶点上的树。",
+              "style": "block",
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "第二步",
+              "content": "为树增加根，并比较两种计数。",
+              "style": "example",
+              "fontSize": "small",
+              "appearance": "uncover"
+            },
+            {
+              "type": "formula",
+              "latex": "n\\,T_n=n^{n-1}",
+              "appearance": "uncover"
+            },
+            {
+              "type": "text",
+              "content": "得到 T_n = n^(n-2)。",
+              "fontSize": "small",
+              "appearance": "uncover"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“逐块显现：保留先前内容”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "逐块独显：不为未显示块留空位",
+          "blocks": [
+            {
+              "type": "callout",
+              "title": "对象",
+              "content": "选择一个集合。",
+              "style": "block",
+              "fontSize": "small",
+              "appearance": "only"
+            },
+            {
+              "type": "callout",
+              "title": "角度一",
+              "content": "计算第一个表达式。",
+              "style": "example",
+              "fontSize": "small",
+              "appearance": "only"
+            },
+            {
+              "type": "callout",
+              "title": "角度二",
+              "content": "计算第二个表达式并比较。",
+              "style": "alert",
+              "fontSize": "small",
+              "appearance": "only"
+            },
+            {
+              "type": "text",
+              "content": "“逐块独显”仅排版已经到达的块；未出现的块不占位，版面会随步骤展开。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“逐块独显：不为未显示块留空位”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "二栏、三栏与嵌套内容",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "说明",
+                      "content": "左栏可包含文字、列表和语义块。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "拖动块手柄可调整顺序，分栏中的块也可跨栏拖动。",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "formula",
+                      "latex": "\\sum_{i=1}^{n}i=\\frac{n(n+1)}2",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-triangle.png",
+                      "width": 0.6,
+                      "alt": "tikz-triangle"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“二栏、三栏与嵌套内容”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "三栏对照：真实素材示例",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-cycle-5.png",
+                      "width": 0.95,
+                      "alt": "tikz-cycle-5"
+                    },
+                    {
+                      "type": "text",
+                      "content": "循环图：每点度数为 2。",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-complete-5.png",
+                      "width": 0.95,
+                      "alt": "tikz-complete-5"
+                    },
+                    {
+                      "type": "text",
+                      "content": "完全图：所有点对相连。",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-star-5.png",
+                      "width": 0.95,
+                      "alt": "tikz-star-5"
+                    },
+                    {
+                      "type": "text",
+                      "content": "星形树：中心连接叶节点。",
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rawTex",
+              "source": "\\par\\medskip"
+            },
+            {
+              "type": "text",
+              "content": "每栏宽度可配置；这里是三个相互独立的图片与文字块。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“三栏对照：真实素材示例”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "章节、大纲与页面移动",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "左栏创建章节；右侧页面属性重命名章节。",
+                "章节旁加号添加页面，章节标题可折叠。",
+                "Command 多选或 Shift 范围选择页面，再批量复制、剪切或删除。",
+                "拖动页面到目标位置，可跨章节；“移动到…”适合远距离移动。",
+                "右键页面使用复制、粘贴、创建副本等操作；正文右键保留文字编辑。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“章节、大纲与页面移动”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "隐藏、跳过与讲者备注",
+          "blocks": [
+            {
+              "type": "callout",
+              "title": "隐藏块仍可编辑",
+              "content": "下面实际保存了一个隐藏文字块；在编辑器中可看见，TeX 与 PDF 不会输出它。",
+              "style": "block",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "HANDBOOK_HIDDEN_BLOCK：这里是内部草稿，不应该出现在编译结果。",
+              "hidden": true
+            },
+            {
+              "type": "list",
+              "items": [
+                "在块属性中切换“隐藏”；页面的“跳过”会省略整张幻灯片。",
+                "本章节最后保存了“隐藏练习页”，可以取消跳过后编译。",
+                "右侧页面属性可编辑讲者备注；本手册每页都带有操作提示备注。",
+                "复制页面会重新分配标识；图片与引用随页面携带。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“隐藏、跳过与讲者备注”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "无装饰页面：plain",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "本页开启 plain，适合全幅图片、关键句或特殊版式。"
+            },
+            {
+              "type": "formula",
+              "latex": "T_n=n^{n-2}"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“无装饰页面：plain”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。",
+          "frame": {
+            "plain": true,
+            "label": "handbook-plain"
+          }
+        },
+        {
+          "title": "页面标签与内部跳转",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "目标页的页面标签是 handbook-plain；此按钮使用 Raw TeX 进行内部跳转。",
+              "fontSize": "small"
+            },
+            {
+              "type": "rawTex",
+              "source": "\\hyperlink{handbook-plain}{\\beamerbutton{跳到无装饰页}}"
+            },
+            {
+              "type": "callout",
+              "title": "使用方式",
+              "content": "在系统 PDF 预览中点击按钮；在页面属性中设置标签。外部网址则直接使用富文本超链接。",
+              "style": "block",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“页面标签与内部跳转”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。",
+          "frame": {
+            "label": "handbook-links"
+          }
+        },
+        {
+          "title": "自动分页：不必把长材料挤在一页",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "本页启用了 allowframebreaks，Raw TeX 的 framebreak 演示真实拆页。",
+              "fontSize": "small"
+            },
+            {
+              "type": "list",
+              "items": [
+                "适合长参考资料或补充说明。",
+                "不要与逐项、逐块显示同时使用。"
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "rawTex",
+              "source": "\\framebreak"
+            },
+            {
+              "type": "callout",
+              "title": "这是同一逻辑页的下一张物理页",
+              "content": "网格会完整显示自动分页结果；左栏仍然保留同一个内容页。",
+              "style": "block",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“自动分页：不必把长材料挤在一页”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。",
+          "frame": {
+            "allowFrameBreaks": true
+          }
+        },
+        {
+          "title": "缩小内容：shrink",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "页面属性的 shrink 让 Beamer 在必要时缩小整页内容。",
+                "优先拆页、分栏和减少内容，再使用字号或 shrink。",
+                "这里确实保存了 shrink 页面选项，可在编辑器中查看。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“缩小内容：shrink”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。",
+          "frame": {
+            "shrink": true
+          }
+        },
+        {
+          "title": "隐藏练习页",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "HANDBOOK_HIDDEN_SLIDE：取消跳过，写下你的第一份报告标题。"
+            },
+            {
+              "type": "callout",
+              "title": "练习",
+              "content": "把本页移动到开始章节，并添加一张图片。",
+              "style": "block",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“隐藏练习页”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "title": "图片、绘图与代码",
+      "slides": [
+        {
+          "title": "图片已真正存入本文件",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "examples/assets/commutative.png",
+                      "width": 0.85,
+                      "alt": "项目已有的交换图 PNG"
+                    },
+                    {
+                      "type": "text",
+                      "content": "原始示例：examples/assets/commutative.png",
+                      "fontSize": "scriptsize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "items": [
+                        "点击“图片”选择 PNG/JPEG。",
+                        "从 Finder 拖入编辑区。",
+                        "直接粘贴剪贴板中的图片。",
+                        "设置图片块宽度，并添加独立说明文字。"
+                      ],
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "图片复制进 .njub 的 pic/；移动文件后不依赖原图片路径。",
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“图片已真正存入本文件”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "可编辑 TikZ：这不是一张截图",
+          "blocks": [
+            {
+              "type": "tikz",
+              "source": "\\node[draw,rounded corners,fill=HandbookPurple!12,minimum width=2cm] (a) at (0,0) {内容};\n\\node[draw,rounded corners,fill=HandbookPurple!12,minimum width=2cm] (b) at (3.5,0) {XeLaTeX};\n\\node[draw,rounded corners,fill=HandbookPurple!12,minimum width=2cm] (c) at (7,0) {PDF};\n\\draw[-{Stealth},thick,HandbookPurple] (a)--(b);\n\\draw[-{Stealth},thick,HandbookPurple] (b)--(c);"
+            },
+            {
+              "type": "text",
+              "content": "这个块保存 TikZ 源码；文稿导入 arrows.meta 库，并在自定义 TeX 头定义 HandbookPurple。",
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "编辑方法",
+              "content": "选中 TikZ 块直接修改源码，或打开离线可视化编辑器调整节点、连线和公式标签；应用后由主程序编译。",
+              "style": "block",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“可编辑 TikZ：这不是一张截图”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "TikZ 预设：图论与流程",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-binary.png",
+                      "width": 0.95,
+                      "alt": "tikz-binary"
+                    },
+                    {
+                      "type": "text",
+                      "content": "二叉树",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-decision.png",
+                      "width": 0.95,
+                      "alt": "tikz-decision"
+                    },
+                    {
+                      "type": "text",
+                      "content": "决策流程",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-state-4.png",
+                      "width": 0.95,
+                      "alt": "tikz-state-4"
+                    },
+                    {
+                      "type": "text",
+                      "content": "状态环",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“TikZ 预设：图论与流程”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "TikZ 预设：函数与数据",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-parabola.png",
+                      "width": 0.95,
+                      "alt": "tikz-parabola"
+                    },
+                    {
+                      "type": "text",
+                      "content": "抛物线",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-gaussian.png",
+                      "width": 0.95,
+                      "alt": "tikz-gaussian"
+                    },
+                    {
+                      "type": "text",
+                      "content": "正态分布",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/tikz-bar.png",
+                      "width": 0.95,
+                      "alt": "tikz-bar"
+                    },
+                    {
+                      "type": "text",
+                      "content": "柱状图",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“TikZ 预设：函数与数据”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "素材库与绘图参数",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "打开素材库，切换 TikZ 分类并搜索名称或标签。",
+                "选择一个预设，修改可用的颜色、标签、缩放等参数。",
+                "插入当前页面，再按需打开可视化编辑器或编辑源码。",
+                "所需 TikZ 库会随素材声明导入；也可在文稿属性手动添加。",
+                "可视化编辑器不保证理解所有 TikZ 语法；最终结果以 XeLaTeX 为准。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“素材库与绘图参数”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "Python 代码：固定宽度与真实高亮",
+          "blocks": [
+            {
+              "type": "code",
+              "content": "from math import comb\n\ndef labelled_trees(n: int) -> int:\n    return 1 if n == 1 else n ** (n - 2)\n\nfor n in range(2, 6):\n    print(n, labelled_trees(n), comb(n, 2))",
+              "language": "Python",
+              "fontSize": "footnotesize"
+            },
+            {
+              "type": "text",
+              "content": "选择代码块语言和字号。源码按原样保存，序列化会为包含代码的页面自动设置 fragile。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“Python 代码：固定宽度与真实高亮”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "Raw TeX：超出结构化界面的排版",
+          "blocks": [
+            {
+              "type": "rawTex",
+              "source": "\\begin{center}\n\\fbox{\\parbox{0.72\\linewidth}{\\centering\\textbf{结构化编辑 + 显式 TeX 扩展}\\\\[5pt]\\HandbookTerm{手册自定义命令}：$\\binom{n}{2}$}}\n\\end{center}"
+            },
+            {
+              "type": "callout",
+              "title": "适用范围",
+              "content": "特殊命令、内部链接或复杂环境可放在 Raw TeX 块中；完整环境必须正确闭合。",
+              "style": "block",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "不要在普通富文本中粘贴整段 LaTeX 环境；普通文字支持的公式语法与 Raw TeX 是不同入口。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“Raw TeX：超出结构化界面的排版”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    },
+    {
+      "title": "主题、模板与编译预览",
+      "slides": [
+        {
+          "title": "主题预览来自实际 Beamer 编译",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/themes-nju.png",
+                      "width": 0.95,
+                      "alt": "themes-nju"
+                    },
+                    {
+                      "type": "text",
+                      "content": "南京大学主题",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/themes-boadilla.png",
+                      "width": 0.95,
+                      "alt": "themes-boadilla"
+                    },
+                    {
+                      "type": "text",
+                      "content": "Boadilla",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/themes-madrid.png",
+                      "width": 0.95,
+                      "alt": "themes-madrid"
+                    },
+                    {
+                      "type": "text",
+                      "content": "Madrid",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“主题预览来自实际 Beamer 编译”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "外观比较：三种不同主题",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/themes-berlin.png",
+                      "width": 0.95,
+                      "alt": "themes-berlin"
+                    },
+                    {
+                      "type": "text",
+                      "content": "Berlin",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/themes-cambridgeus.png",
+                      "width": 0.95,
+                      "alt": "themes-cambridgeus"
+                    },
+                    {
+                      "type": "text",
+                      "content": "CambridgeUS",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/themes-singapore.png",
+                      "width": 0.95,
+                      "alt": "themes-singapore"
+                    },
+                    {
+                      "type": "text",
+                      "content": "Singapore",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“外观比较：三种不同主题”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "主题组合、自定义头与依赖",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "文稿属性切换南京大学、Beamer 默认或自定义主题。",
+                "可组合 theme、color theme、font theme、inner theme 与 outer theme。",
+                "自定义 TeX 头在生成的配置之后写入，可定义命令与覆盖颜色。",
+                "LaTeX 包和 TikZ 库在对应设置中导入；所需包应安装在本机 TeX 环境。"
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "code",
+              "content": "\\definecolor{HandbookPurple}{HTML}{663399}\n\\newcommand{\\HandbookTerm}[1]{\\textcolor{HandbookPurple}{#1}}",
+              "language": "",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“主题组合、自定义头与依赖”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "模板不是统一占位图",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/templates-lecture.png",
+                      "width": 0.95,
+                      "alt": "templates-lecture"
+                    },
+                    {
+                      "type": "text",
+                      "content": "课程讲义",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/templates-workshop.png",
+                      "width": 0.95,
+                      "alt": "templates-workshop"
+                    },
+                    {
+                      "type": "text",
+                      "content": "技术工作坊",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.31,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/templates-comparison.png",
+                      "width": 0.95,
+                      "alt": "templates-comparison"
+                    },
+                    {
+                      "type": "text",
+                      "content": "双栏比较",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“模板不是统一占位图”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "使用、制作与分享自己的模板",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "在素材库选择文稿模板，先看真实预览再创建文稿。",
+                "为当前文稿设置页面、块、图片、主题与自定义 TeX 头。",
+                "将当前文稿保存为模板，会导出 .njup 并安装到本地素材库。",
+                "其他人安装扩展包后可一键创建同样结构的文稿。",
+                "模板拥有自己的图片与主题文本，卸载扩展不会修改已创建文稿。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“使用、制作与分享自己的模板”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "页面尺寸：比例与毫米",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "选择",
+                "用途"
+              ],
+              "rows": [
+                [
+                  "4:3",
+                  "传统投影或方正布局"
+                ],
+                [
+                  "16:9",
+                  "宽屏报告；本手册采用此比例"
+                ],
+                [
+                  "16:10 / 3:2",
+                  "适配其他显示比例"
+                ],
+                [
+                  "自定义毫米尺寸",
+                  "指定宽度与高度"
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "在文稿属性修改尺寸并重新编译；内容较多时，先拆页或分栏，再调整块字号。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“页面尺寸：比例与毫米”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "手动编译、进度与错误定位",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "默认不会在每次输入后运行 XeLaTeX。点击“编译”或 Command+Enter。",
+                "编译过程中观察进度与状态；成功后显示结果消息。",
+                "编译失败信息在右侧栏显示；先看最早的 TeX 错误及附近内容。",
+                "混合公式定界符未闭合等问题会在调用 XeLaTeX 前诊断。",
+                "若提示 xelatex 不存在，检查本机 TeX 工具链与应用环境。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“手动编译、进度与错误定位”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "多页网格与系统 PDF 预览",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "多页网格",
+                      "content": "响应式排列真实 PDF 物理页。逐项动画、章节标题页与自动分页都应完整出现。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "调整窗口尺寸观察网格；左栏逻辑页不等同于 PDF 物理页。",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "系统 PDF 预览",
+                      "content": "由系统文档框架显示 PDF，支持翻页和超链接等原生交互。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "切换到此模式后，可点击本手册的外部链接与内部跳转按钮。",
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“多页网格与系统 PDF 预览”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "从当前页播放与导出",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "先选择要讲解的 PDF 物理页，再点击“从当前页播放”。",
+                "播放从当前页开始而非封面；保留鼠标指针，适合指示公式或图形。",
+                "方向键切换物理页，Escape 退出播放并返回编辑。",
+                "编译后可“导出 PDF”；“复制 TeX”便于查看生成的源码。",
+                "“导出 TeX 包”生成 ZIP，包含 slide.tex、主题和被引用的 pic/ 图片。",
+                "解压后使用 XeLaTeX 编译；不要只复制 tex 而遗漏图片。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“从当前页播放与导出”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    },
+    {
+      "title": "论文与连续文档",
+      "slides": [
+        {
+          "title": "真实论文封面：本科与硕士",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/paper-bachelor.png",
+                      "width": 0.52,
+                      "alt": "paper-bachelor"
+                    },
+                    {
+                      "type": "text",
+                      "content": "南京大学本科模板",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/paper-master.png",
+                      "width": 0.52,
+                      "alt": "paper-master"
+                    },
+                    {
+                      "type": "text",
+                      "content": "南京大学硕士模板",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“真实论文封面：本科与硕士”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "真实论文封面：博士与课程报告",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/paper-doctor.png",
+                      "width": 0.52,
+                      "alt": "paper-doctor"
+                    },
+                    {
+                      "type": "text",
+                      "content": "南京大学博士模板",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "image",
+                      "file": "app/public/presets/paper-report.png",
+                      "width": 0.52,
+                      "alt": "paper-report"
+                    },
+                    {
+                      "type": "text",
+                      "content": "A4 课程报告",
+                      "fontSize": "footnotesize"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“真实论文封面：博士与课程报告”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "创建论文并填写基本信息",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "欢迎页“创建文档”或工具栏“论文”，选择模板、文件名和位置。",
+                "右侧填写中英文标题、作者、院系、专业、导师等模板所需字段。",
+                "填写中英文摘要、关键词，并调整字体、行距、页边距和页眉页脚。",
+                "左栏添加章、节、小节，也可设为附录或致谢。",
+                "本手册是幻灯片文稿；论文功能需在新建的 paper 文稿中操作。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“创建论文并填写基本信息”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "论文正文、分页与资源",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "正文共享文字、表格、公式、图片、代码、TikZ、语义块与分栏。",
+                "块可以拖动、隐藏和调整字号；需要时开启“块前分页”。",
+                "论文预览使用竖向纸张网格、适宽连续阅读、缩放和系统 PDF 预览。",
+                "编译决定真实分页，不是 Word 式逐像素即时分页；论文不提供幻灯片播放。",
+                "导出 TeX 包包含 paper.tex、论文文档类、封面资源与图片。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“论文正文、分页与资源”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "文献、编号与交叉引用",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "在文献编辑器导入 BibTeX，或手动编辑条目；可再次导出 BibTeX。",
+                "在富文本工具栏插入文献引用，使用已有文献标识。",
+                "给章节、图、表或编号公式设置标签，再插入交叉引用。",
+                "NJUThesis 支持编号或作者-年份文献样式。",
+                "复制章节会携带图片、文献与内部引用，并重新映射相关标识。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“文献、编号与交叉引用”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "打开现有论文实例进行练习",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "文件",
+                "模板"
+              ],
+              "rows": [
+                [
+                  "examples/nju-bachelor.njub",
+                  "本科"
+                ],
+                [
+                  "examples/nju-master.njub",
+                  "硕士"
+                ],
+                [
+                  "examples/nju-doctor.njub",
+                  "博士"
+                ],
+                [
+                  "examples/nju-report.njub",
+                  "课程报告"
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "callout",
+              "title": "练习路线",
+              "content": "打开实例 → 另存为 → 改标题与摘要 → 添加一节 → 插图与引用 → 编译 → 导出 TeX 包。",
+              "style": "block",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "目前不提供 DOCX 往返、修订协作、任意 LaTeX 反向解析或 SyncTeX 源码定位。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“打开现有论文实例进行练习”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    },
+    {
+      "title": "声明式插件与 CLI",
+      "slides": [
+        {
+          "title": "插件能做什么，不能做什么",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "声明式贡献",
+                      "content": "扩展包 .njup 可提供主题、文稿模板、参数化 TikZ 与公式素材。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "素材库提供安装、启用、禁用、卸载、搜索与收藏。",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "安装前核对",
+                      "content": "查看作者、版本、贡献类型、来源与 SHA-256；不要安装未经验证的插件。",
+                      "style": "alert",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "摘要只能标识文件，不能证明来源可靠。扩展不会执行 JavaScript 插件代码。",
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“插件能做什么，不能做什么”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "安装真实示例扩展",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "在素材库选择安装扩展，打开 examples/community-example.njup。",
+                "核对安装信息，确认后查看“海蓝”主题、双节点绘图和凯莱公式。",
+                "另一个示例 examples/math-research-toolbox.njup 提供数学主题、图片报告与绘图。",
+                "插入素材后保存文稿；文稿将拥有图片与主题文本。",
+                "禁用或卸载扩展，只影响素材库可选项，不回收现有文稿内容。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“安装真实示例扩展”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "制作一个公式插件",
+          "blocks": [
+            {
+              "type": "code",
+              "content": "{\n  \"apiVersion\": 1,\n  \"id\": \"my-math\", \"name\": \"我的数学素材\",\n  \"version\": \"1.0.0\", \"author\": \"你的名字\",\n  \"themes\": [], \"templates\": [], \"tikz\": [],\n  \"formulas\": [{\n    \"id\": \"cayley\", \"name\": \"凯莱公式\",\n    \"category\": \"组合数学\", \"tags\": [\"tree\"],\n    \"latex\": \"n^{n-2}\", \"preview\": \"n^{n-2}\"\n  }]\n}",
+              "language": "",
+              "fontSize": "footnotesize"
+            },
+            {
+              "type": "text",
+              "content": "先用 extension-schema 查看完整协议，再用 extension-pack 将 manifest.json 打包为 .njup。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“制作一个公式插件”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "CLI：与 GUI 共用文稿模型",
+          "blocks": [
+            {
+              "type": "code",
+              "content": "cd app\nnpm run njub -- schema --json\nnpm run njub -- catalogue --json\nnpm run njub -- create --spec ../examples/nju-editor-handbook.spec.json \\\n  --asset-root .. --output ../examples/handbook-copy.njub --json\nnpm run njub -- validate ../examples/handbook-copy.njub --json\nnpm run njub -- inspect ../examples/handbook-copy.njub --summary --json",
+              "language": "",
+              "fontSize": "footnotesize"
+            },
+            {
+              "type": "text",
+              "content": "create 默认拒绝覆盖；仅在明确需要时使用 --force。--asset-root 限制可读取的图片范围。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“CLI：与 GUI 共用文稿模型”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "CLI：模板、论文与扩展",
+          "blocks": [
+            {
+              "type": "code",
+              "content": "npm run njub -- from-template lecture --output lecture.njub --json\nnpm run njub -- paper-schema --json\nnpm run njub -- create-paper --template master \\\n  --output thesis.njub --json\nnpm run njub -- extension-schema --json\nnpm run njub -- extension-pack --manifest ../examples/extension.manifest.json \\\n  --output community.njup --json\nnpm run build:cli\nnode dist-cli/njub.mjs --help",
+              "language": "",
+              "fontSize": "footnotesize"
+            },
+            {
+              "type": "text",
+              "content": "机器调用使用 --json；错误写入 stderr 并返回非零状态。完整论文 JSON 使用 paper-schema。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“CLI：模板、论文与扩展”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "最小幻灯片规格：Agent 的写入口",
+          "blocks": [
+            {
+              "type": "code",
+              "content": "{\n  \"specVersion\": 2,\n  \"metadata\": { \"title\": \"我的报告\" },\n  \"sections\": [{\n    \"title\": \"开始\",\n    \"slides\": [{ \"title\": \"第一张内容页\", \"blocks\": [\n      { \"type\": \"text\", \"content\": \"文字与公式：\\\\(x^2\\\\)\" },\n      { \"type\": \"image\", \"file\": \"plot.png\", \"width\": 0.6 }\n    ] }]\n  }]\n}",
+              "language": "",
+              "fontSize": "footnotesize"
+            },
+            {
+              "type": "text",
+              "content": "保存为 spec.json，准备 plot.png，再运行 create；生成的图片位于归档内部 pic/。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“最小幻灯片规格：Agent 的写入口”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    },
+    {
+      "title": "开发、验证与发布",
+      "slides": [
+        {
+          "title": "开发入口与本地环境",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "在仓库根目录阅读 AGENTS.md、docs/README.md 与 app/README.md。",
+                "安装项目所需 Node.js、Rust 工具链与 macOS 编译工具。",
+                "本机预览编译需要完整 XeLaTeX / latexmk 工具链，例如 MacTeX。",
+                "在 app 目录执行 npm ci，再运行 npm run tauri dev。",
+                "仅运行 npm run dev 是浏览器开发模式，不具备完整桌面文件与原生 PDF 能力。"
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "code",
+              "content": "cd app\nnpm ci\nnpm run tauri dev",
+              "language": "",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“开发入口与本地环境”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "目录地图：从需求找到代码",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "职责",
+                "入口"
+              ],
+              "rows": [
+                [
+                  "GUI 与共用编辑组件",
+                  "app/src/ui/"
+                ],
+                [
+                  "文稿状态与历史",
+                  "app/src/state/"
+                ],
+                [
+                  "领域模型 / 归档 / TeX",
+                  "app/src/domain/"
+                ],
+                [
+                  "Agent 创作命令",
+                  "app/cli/"
+                ],
+                [
+                  "原生编译 / PDF / 文件",
+                  "app/src-tauri/src/"
+                ],
+                [
+                  "NJU 主题与论文类",
+                  "templates/nju/"
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "详细职责索引以 docs/architecture.md 为入口，具体协议与逻辑以源码为准。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“目录地图：从需求找到代码”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "单一真相源：不要另写一套序列化器",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "items": [
+                        "deck.ts / paper.ts：两种文稿模型。",
+                        "authoring.ts：声明式输入到模型映射。",
+                        "njub.ts：GUI 与 CLI 共用归档编解码。",
+                        "serialize.ts：幻灯片和共用块的 TeX 输出。"
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "items": [
+                        "pages.ts：复制、移动与依赖重映射。",
+                        "commands.ts：命令类型与可用性。",
+                        "presets.ts / extensions.ts：素材与扩展。",
+                        "compiler.rs / pdf_raster.rs：编译与原生渲染。"
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rawTex",
+              "source": "\\par\\medskip"
+            },
+            {
+              "type": "text",
+              "content": "新增字段应同时考虑 Schema、GUI、CLI、归档与输出；协议用 CLI 从 Schema 派生，不维护第二份手写规格。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“单一真相源：不要另写一套序列化器”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "实现一个新功能的正确路径",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "先读领域模型、共用组件与 docs 索引，寻找可以复用的入口。",
+                "先为行为写有意义的测试，再修改领域逻辑和界面。",
+                "复用添加块、属性面板、命令与生命周期，避免幻灯片/论文各写一套。",
+                "保持文稿能保存、打开、撤销与编译；用真实图片和真实 XeLaTeX 验证。",
+                "更新索引和唯一说明入口；审查职责与依赖，再经允许进行 commit。"
+              ],
+              "ordered": true,
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“实现一个新功能的正确路径”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "自动验证与真实编译",
+          "blocks": [
+            {
+              "type": "code",
+              "content": "npm test -- src/domain/njub.test.ts\nnpm test -- src/domain/serialize.test.ts\nnpm run verify:document -- ../examples/nju-editor-handbook.njub\nnpm run verify:catalogue\nnpm run verify:rendering\nnpm run verify:papers\nnpm run verify:interactions",
+              "language": "",
+              "fontSize": "footnotesize"
+            },
+            {
+              "type": "text",
+              "content": "开发中选择相关测试，不必每次全量执行。编译成功仍需检查 PDF 排版；离屏图像检查不能代替实际交互验收。",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“自动验证与真实编译”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "构建与 macOS 发布",
+          "blocks": [
+            {
+              "type": "code",
+              "content": "cd app\nnpm run build\nnpm run tauri -- build\ngh run list\ngh release list",
+              "language": "",
+              "fontSize": "footnotesize"
+            },
+            {
+              "type": "list",
+              "items": [
+                "构建输出位于 app/src-tauri/target/release/bundle/macos/。",
+                ".github/workflows/build-macos.yml 构建 macOS 通用架构包。",
+                "main 推送或手动触发产生 artifact；v* 标签触发 Release。",
+                "Release 同时上传 macOS ZIP 与 release/tutor.pdf；不构建 Windows 包。"
+              ],
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“构建与 macOS 发布”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "资源格式与导出边界",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": ".njub = ZIP 容器",
+                      "content": "document.json 保存领域模型；pic/ 保存文稿拥有的图片。使用 CLI 或 GUI 写入，不手工拼另一种格式。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "未被图片块引用的资源不会保留到正式保存文稿。",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "callout",
+                      "title": "TeX 发布包",
+                      "content": "幻灯片和论文导出均携带必需模板与图片；依赖 TeX 工具链，不是脱离环境的独立程序。",
+                      "style": "block",
+                      "fontSize": "small"
+                    },
+                    {
+                      "type": "text",
+                      "content": "编译缓存不是源文稿；删除缓存不能替代保存自己的 .njub。",
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“资源格式与导出边界”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "继续探索：一条完整练习路线",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "另存为本手册，修改标题、日期、主题与页面比例。",
+                "复制“逐项出现”页，替换列表并从该页播放。",
+                "把真实图片拖入编辑区，添加说明与脚注，再导出 TeX 包。",
+                "安装社区示例扩展，试用主题与公式；保存后再禁用扩展。",
+                "创建课程报告，练习章节、文献和交叉引用。",
+                "用 CLI 生成自己的文稿，再回到 GUI 继续编辑。"
+              ],
+              "ordered": true,
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“继续探索：一条完整练习路线”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    },
+    {
+      "title": "Acknowledgement",
+      "slides": [
+        {
+          "title": "Acknowledgement：排版与学术模板",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "感谢南京大学 Beamer 模板及其维护者提供演示主题与标识资源。",
+                "感谢 nju-lug/NJUThesis 提供本科、硕士与博士论文排版基础。",
+                "感谢 TeX、XeTeX、LaTeX、Beamer、PGF/TikZ、fontspec 与 latexmk 社区。",
+                "感谢 Fandol、Latin Modern 与 TeX Gyre 字体项目。",
+                "本手册插图来自项目实际素材与编译预览，不使用虚构界面截图。"
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“Acknowledgement：排版与学术模板”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        },
+        {
+          "title": "Acknowledgement：编辑器基础设施",
+          "blocks": [
+            {
+              "type": "columns",
+              "columns": [
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "items": [
+                        "Tauri / Rust：桌面能力与原生编译。",
+                        "React / TypeScript / Vite：界面与构建。",
+                        "Tiptap：富文本编辑。",
+                        "Zustand：状态管理。",
+                        "Radix / dnd-kit：界面操作与拖动。"
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.48,
+                  "blocks": [
+                    {
+                      "type": "list",
+                      "items": [
+                        "TanStack Virtual：大素材列表虚拟化。",
+                        "KaTeX / PDF.js：浏览器数学与 PDF。",
+                        "TikZ Editor：离线图形编辑基础。",
+                        "Zod / fflate / Commander：协议、归档与 CLI。",
+                        "感谢使用、测试与反馈软件的用户。"
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rawTex",
+              "source": "\\par\\medskip"
+            },
+            {
+              "type": "text",
+              "content": "依赖清单见 app/package.json 与 Cargo.toml；固定第三方资源来源与许可见 app/verification/vendor/sources.json。",
+              "fontSize": "footnotesize"
+            }
+          ],
+          "notes": "讲解提示：在编辑器中选中“Acknowledgement：编辑器基础设施”，查看真实块类型、页面属性和右侧设置；编译后返回本页，演示相应功能。"
+        }
+      ]
+    }
+  ]
+}

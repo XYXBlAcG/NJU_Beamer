@@ -1,0 +1,40 @@
+import { execFileSync } from "node:child_process";
+import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { createCanvas, DOMMatrix, ImageData, Path2D } from "@napi-rs/canvas";
+import { templates, tikzPresets } from "../src/domain/presets";
+import { createDefaultDeck, createId, defaultFrameOptions } from "../src/domain/deck";
+import { renderTikz, tikzBlock } from "../src/domain/extensions";
+import { serializeDeck } from "../src/domain/serialize";
+import { generatePresetThumbnail } from "./preset-thumbnail";
+
+Object.assign(globalThis, { DOMMatrix, ImageData, Path2D });
+const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+const root = resolve("../.tmp/thumbnails");
+const output = resolve("public/presets");
+mkdirSync(root, { recursive: true });
+mkdirSync(output, { recursive: true });
+const deck = createDefaultDeck();
+deck.settings.theme.mode = "default";
+deck.settings.sectionTitleSlides = false;
+deck.settings.pageSize = { preset: "16:9", widthMm: 160, heightMm: 90 };
+deck.settings.tikzLibraries = [...new Set(tikzPresets.flatMap((preset) => preset.libraries))];
+for (const template of templates.filter(item => !process.argv[2] || item.id === process.argv[2])) await generatePresetThumbnail({ kind: "templates", key: `builtin/templates/${template.id}`, item: template });
+const entries = tikzPresets.filter(item => !process.argv[2] || item.id === process.argv[2]).map((preset) => ({ key: `tikz-${preset.id}`, slide: { id: createId(), title: preset.name, kind: "content" as const, frame: { ...defaultFrameOptions }, notes: "", blocks: [tikzBlock(renderTikz(preset, {}))] } }));
+if (!entries.length) process.exit(0);
+deck.sections[0].slides = entries.map((entry) => entry.slide);
+writeFileSync(`${root}/catalogue.tex`, serializeDeck(deck));
+execFileSync("/Library/TeX/texbin/latexmk", ["-xelatex", "-interaction=nonstopmode", "-halt-on-error", "catalogue.tex"], { cwd: root, env: { ...process.env, PATH: `/Library/TeX/texbin:${process.env.PATH}` }, stdio: "ignore" });
+const task = pdfjs.getDocument({ data: new Uint8Array(readFileSync(`${root}/catalogue.pdf`)), cMapUrl: resolve("node_modules/pdfjs-dist/cmaps") + "/", cMapPacked: true });
+const document = await task.promise;
+if (document.numPages !== entries.length) throw new Error("素材预览页数不匹配");
+for (const [index, entry] of entries.entries()) {
+  const page = await document.getPage(index + 1);
+  const viewport = page.getViewport({ scale: 480 / page.getViewport({ scale: 1 }).width });
+  const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+  await page.render({ canvas: canvas as never, canvasContext: canvas.getContext("2d") as never, viewport }).promise;
+  writeFileSync(`${output}/${entry.key}.png`, canvas.toBuffer("image/png"));
+  page.cleanup();
+}
+await task.destroy();
+process.stdout.write(`${entries.length} previews\n`);

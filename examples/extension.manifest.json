@@ -1,0 +1,19 @@
+{
+  "apiVersion": 1,
+  "id": "nju-community-example",
+  "name": "社区扩展示例",
+  "version": "1.0.0",
+  "author": "NJU Beamer Community",
+  "themes": [{
+    "id": "ocean", "name": "海蓝", "category": "社区", "tags": ["blue"],
+    "theme": { "mode": "custom", "name": "CommunityOcean", "colorTheme": "", "fontTheme": "", "innerTheme": "", "outerTheme": "" },
+    "preamble": "", "files": [{ "path": "theme/beamerthemeCommunityOcean.sty", "content": "\\ProvidesPackage{beamerthemeCommunityOcean}\n\\usetheme{Madrid}\n\\definecolor{Ocean}{RGB}{0,96,128}\n\\setbeamercolor{structure}{fg=Ocean}" }]
+  }],
+  "templates": [],
+  "tikz": [{
+    "id": "two-nodes", "name": "两个相连节点", "category": "社区", "tags": ["graph"],
+    "source": "\\node[circle,draw={{color}}] (a) at (0,0) {A};\n\\node[circle,draw={{color}}] (b) at (2,0) {B};\n\\draw[->,{{color}}] (a)--(b);",
+    "libraries": [], "parameters": [{ "key": "color", "name": "颜色", "kind": "color", "value": "blue" }]
+  }],
+  "formulas": [{ "id": "cayley", "name": "凯莱公式", "category": "组合数学", "tags": ["tree"], "latex": "n^{n-2}", "preview": "n^{n-2}" }]
+}

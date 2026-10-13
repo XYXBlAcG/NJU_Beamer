@@ -45,13 +45,22 @@ pub fn validate_asset(asset: &DocumentAsset) -> Result<(), String> {
 }
 
 pub fn materialize(root: &Path, assets: &[DocumentAsset]) -> Result<(), String> {
-    if root.exists() {
-        std::fs::remove_dir_all(root).map_err(|error| error.to_string())?;
-    }
+    assets.iter().try_for_each(validate_asset)?;
     std::fs::create_dir_all(root.join("pic")).map_err(|error| error.to_string())?;
+    for entry in std::fs::read_dir(root.join("pic")).map_err(|error| error.to_string())? {
+        let entry = entry.map_err(|error| error.to_string())?;
+        let path = format!("pic/{}", entry.file_name().to_string_lossy());
+        if entry
+            .file_type()
+            .map_err(|error| error.to_string())?
+            .is_file()
+            && !assets.iter().any(|asset| asset.path == path)
+        {
+            std::fs::remove_file(entry.path()).map_err(|error| error.to_string())?;
+        }
+    }
     for asset in assets {
-        validate_asset(asset)?;
-        std::fs::write(root.join(&asset.path), &asset.content)
+        crate::binary_file::write_if_changed(&root.join(&asset.path), &asset.content)
             .map_err(|error| error.to_string())?;
     }
     Ok(())
@@ -69,6 +78,26 @@ mod tests {
             content: vec![],
         })
         .is_err());
+    }
+
+    #[test]
+    fn preserves_unchanged_assets_and_removes_unreferenced_cached_assets() {
+        let directory = tempfile::tempdir().unwrap();
+        let asset = DocumentAsset {
+            path: "pic/image.jpg".into(),
+            mime_type: "image/jpeg".into(),
+            content: vec![255, 216, 255],
+        };
+        materialize(directory.path(), &[asset.clone()]).unwrap();
+        let path = directory.path().join(&asset.path);
+        let modified = std::fs::metadata(&path).unwrap().modified().unwrap();
+        materialize(directory.path(), &[asset]).unwrap();
+        assert_eq!(
+            std::fs::metadata(&path).unwrap().modified().unwrap(),
+            modified
+        );
+        materialize(directory.path(), &[]).unwrap();
+        assert!(!path.exists());
     }
 
     #[test]

@@ -9,6 +9,7 @@ export default defineConfig({
       targets: [
         { src: "node_modules/pdfjs-dist/cmaps", dest: "pdfjs" },
         { src: "node_modules/pdfjs-dist/standard_fonts", dest: "pdfjs" },
+        { src: "node_modules/pdfjs-dist/wasm", dest: "pdfjs" },
       ],
     }),
   ],

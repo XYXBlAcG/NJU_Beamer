@@ -21,7 +21,7 @@ describe("deckSchema v4", () => {
 
     const migrated = deckSchema.parse(existing);
 
-    expect(migrated.formatVersion).toBe(4);
+    expect(migrated.formatVersion).toBe(5);
     expect(migrated.sections[0].slides[0]).toMatchObject({ frame: { plain: false, allowFrameBreaks: false, shrink: false, label: "" }, notes: "" });
     expect(migrated.sections[0].slides[1].blocks[0]).toMatchObject({ appearance: "none" });
     expect(migrated.settings).toMatchObject({

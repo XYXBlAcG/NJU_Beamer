@@ -1,0 +1,1722 @@
+{
+  "specVersion": 2,
+  "metadata": {
+    "title": "C++ STL 中的顺序容器",
+    "subtitle": "用法、图解与开销",
+    "author": "谢宇轩",
+    "institute": "南京大学",
+    "date": "2026 年 10 月"
+  },
+  "settings": {
+    "bodyFont": "song",
+    "mathFont": {
+      "preset": "times"
+    },
+    "pageSize": {
+      "preset": "16:9",
+      "widthMm": 160,
+      "heightMm": 90
+    },
+    "sectionTitleSlides": false,
+    "preamble": "\\setbeamertemplate{headline}{}\n\\setbeamertemplate{navigation symbols}{}",
+    "tikzLibraries": [
+      "arrows.meta"
+    ]
+  },
+  "sections": [
+    {
+      "title": "vector",
+      "slides": [
+        {
+          "kind": "title",
+          "notes": "主要讲五种容器的用法. 复杂度按元素操作的次数计. 代码默认放在 main 中，头文件在备注中列出. C++20 示例单独标注."
+        },
+        {
+          "title": "这几个容器",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "容器",
+                "通常怎样存",
+                "访问第 k 项",
+                "常用修改"
+              ],
+              "rows": [
+                [
+                  "vector",
+                  "连续数组",
+                  "\\(O(1)\\)",
+                  "尾部追加，摊还 \\(O(1)\\)"
+                ],
+                [
+                  "deque",
+                  "分块数组",
+                  "\\(O(1)\\)",
+                  "首尾修改，\\(O(1)\\)"
+                ],
+                [
+                  "list",
+                  "双向链表",
+                  "\\(O(k)\\)",
+                  "已知位置修改，\\(O(1)\\)"
+                ],
+                [
+                  "forward_list",
+                  "单向链表",
+                  "\\(O(k)\\)",
+                  "已知前驱修改，\\(O(1)\\)"
+                ],
+                [
+                  "string",
+                  "连续字符",
+                  "\\(O(1)\\)",
+                  "拼接、截取、查找"
+                ]
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "vector 的连续存储是标准保证，deque 的分块图是常见实现. https://eel.is/c++draft/vector.overview https://eel.is/c++draft/deque.overview https://eel.is/c++draft/list.overview https://eel.is/c++draft/forward.list.overview"
+        },
+        {
+          "title": "vector：声明与遍历",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "#include <vector>\n#include <iostream>\n\nstd::vector<int> scores{80, 90, 95};\nfor (int x : scores) {\n    std::cout << x << ' ';\n}",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {80};\n\\node[cell] (a1) at (0.9,0) {90};\n\\node[cell] (a2) at (1.8,0) {95};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "80 90 95",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：本页展示头文件和 main 中的核心语句，不是完整程序.deque、list、forward_list、string 分别需要 <deque>、<list>、<forward_list>、<string>.所有代码保留 std::，避免额外引入命名空间概念.范围 for 用来按顺序访问每个元素.来源：https://eel.is/c++draft/vector.overview ."
+        },
+        {
+          "title": "vector：初始化",
+          "blocks": [
+            {
+              "type": "columns",
+              "alignment": "top",
+              "columns": [
+                {
+                  "width": 0.58,
+                  "blocks": [
+                    {
+                      "type": "code",
+                      "language": "C++",
+                      "content": "std::vector<int> a(3, 7);\nstd::vector<int> b{3, 7};\nstd::vector<int> c(3);\nfor (int x : a) std::cout << x << ' ';\nstd::cout << '\\n';\nfor (int x : b) std::cout << x << ' ';\nstd::cout << '\\n';\nfor (int x : c) std::cout << x << ' ';",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.38,
+                  "blocks": [
+                    {
+                      "type": "tikz",
+                      "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {7};\n\\node[cell] (a1) at (0.9,0) {7};\n\\node[cell] (a2) at (1.8,0) {7};\n\\node[lab,anchor=east] at (-.6,0) {a};\n\\node[cell] (b0) at (0,-0.85) {3};\n\\node[cell] (b1) at (0.9,-0.85) {7};\n\\node[lab,anchor=east] at (-.6,-.85) {b};\n\\node[cell] (c0) at (0,-1.7) {0};\n\\node[cell] (c1) at (0.9,-1.7) {0};\n\\node[cell] (c2) at (1.8,-1.7) {0};\n\\node[lab,anchor=east] at (-.6,-1.7) {c};"
+                    },
+                    {
+                      "type": "text",
+                      "paragraphs": [
+                        [
+                          {
+                            "text": "7 7 7",
+                            "code": true
+                          }
+                        ],
+                        [
+                          {
+                            "text": "3 7",
+                            "code": true
+                          }
+                        ],
+                        [
+                          {
+                            "text": "0 0 0",
+                            "code": true
+                          }
+                        ]
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "notes": "参考：提问：a 与 b 一样吗？这里元素类型为 int，花括号使用元素列表初始化.不要将该例子推广为所有元素类型的全部构造规则.来源：https://eel.is/c++draft/vector.overview ."
+        },
+        {
+          "title": "vector：push_back 与下标",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> scores{80, 90};\nscores.push_back(95);\nscores[1] = 92;\nstd::cout << scores.size() << '\\n';\nstd::cout << scores.front() << ' ';\nstd::cout << scores.back() << '\\n';\nfor (int x : scores) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {操作后的成绩};\n\\node[cell] (n0) at (0,0) {80};\n\\node[lab] at (0,-0.58) {0};\n\\node[focus] (n1) at (0.9,0) {92};\n\\node[lab] at (0.9,-0.58) {1};\n\\node[cell] (n2) at (1.8,0) {95};\n\\node[lab] at (1.8,-0.58) {2};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "3",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "80 95",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "80 92 95",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "下标访问 \\(O(1)\\)，尾部追加摊还 \\(O(1)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：先让听众判断 scores[1] 指向哪一项.访问 front/back 前要求容器非空.vector 的尾部追加具有摊还常数复杂度，本次报告只需掌握用途.来源：https://eel.is/c++draft/vector.overview ."
+        },
+        {
+          "title": "vector：insert 与 erase",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20, 30};\nv.insert(v.begin() + 1, 15);\nv.erase(v.begin() + 2);\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {最初};\n\\node[cell] (a0) at (0,0) {10};\n\\node[cell] (a1) at (0.9,0) {20};\n\\node[cell] (a2) at (1.8,0) {30};\n\\node[lab,anchor=east] at (-.6,-1) {插入 15};\n\\node[cell] (b0) at (0,-1) {10};\n\\node[focus] (b1) at (0.9,-1) {15};\n\\node[cell] (b2) at (1.8,-1) {20};\n\\node[cell] (b3) at (2.7,-1) {30};\n\\node[lab,anchor=east] at (-.6,-2) {删除 20};\n\\node[cell] (c0) at (0,-2) {10};\n\\node[cell] (c1) at (0.9,-2) {15};\n\\node[cell] (c2) at (1.8,-2) {30};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "10 15 30",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "删掉 v[i] 以后，后续元素会随着移动. 这里需要搬动 n-i-1 个元素，开销是 \\(O(n-i)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：begin() 表示第一个元素的位置.vector 支持位置加整数，begin()+2 是第三个元素的位置.不要将这种写法用于 list.来源：https://eel.is/c++draft/vector.overview ."
+        },
+        {
+          "title": "vector：区间修改",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{1, 4};\nv.insert(v.begin() + 1, {2, 3});\nv.insert(v.end(), 2, 9);\nv.erase(v.begin() + 1, v.begin() + 3);\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {删除前};\n\\node[cell] (a0) at (0,0) {1};\n\\node[cell] (a1) at (0.9,0) {2};\n\\node[cell] (a2) at (1.8,0) {3};\n\\node[cell] (a3) at (2.7,0) {4};\n\\node[cell] (a4) at (3.6,0) {9};\n\\node[cell] (a5) at (4.5,0) {9};\n\\node[lab,anchor=east] at (-.6,-1) {删除后};\n\\node[cell] (b0) at (0,-1) {1};\n\\node[cell] (b1) at (0.9,-1) {4};\n\\node[cell] (b2) at (1.8,-1) {9};\n\\node[cell] (b3) at (2.7,-1) {9};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 4 9 9",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "[first,last) 不包含 last. 开销与插入量、删除量和后续元素数有关.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.modifiers"
+        },
+        {
+          "title": "vector：复制与 assign",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> a{1, 2, 3};\nstd::vector<int> b(a);\nstd::vector<int> d(a.begin() + 1, a.end());\nb = {8, 9};\nb.assign(3, 7);\nfor (int x : d) std::cout << x << ' ';\nstd::cout << '\\n';\nfor (int x : b) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (d0) at (0,0) {2};\n\\node[cell] (d1) at (0.9,0) {3};\n\\node[lab,anchor=east] at (-.6,0) {d};\n\\node[cell] (b0) at (0,-0.85) {7};\n\\node[cell] (b1) at (0.9,-0.85) {7};\n\\node[cell] (b2) at (1.8,-0.85) {7};\n\\node[lab,anchor=east] at (-.6,-.85) {b};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "2 3",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "7 7 7",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "复制 n 个元素，开销是 \\(O(n)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.cons 与 https://eel.is/c++draft/sequence.reqmts"
+        },
+        {
+          "title": "vector：reserve 与 resize",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20, 30};\nv.reserve(6);\nstd::cout << v.size() << ' ' << (v.capacity() >= 6);\nv.resize(5, 9);\nstd::cout << '\\n';\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {容量示意};\n\\node[cell] (s0) at (0,0) {10};\n\\node[cell] (s1) at (0.9,0) {20};\n\\node[cell] (s2) at (1.8,0) {30};\n\\node[cell] (s3) at (2.7,0) {};\n\\node[cell] (s4) at (3.6,0) {};\n\\node[cell] (s5) at (4.5,0) {};\n\\node[lab] at (0,-.58) {0};\n\\node[lab] at (0.9,-.58) {1};\n\\node[lab] at (1.8,-.58) {2};\\node[cell,dashed,fill=white] at (2.7,0) {};\n\\node[cell,dashed,fill=white] at (3.6,0) {};\n\\node[cell,dashed,fill=white] at (4.5,0) {};\n\\node[lab] at (3.6,-.7) {未创建元素};\n\\node[lab] at (2.25,1) {3 个已有元素，后面只预留存储};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "3 1",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "10 20 30 9 9",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "reserve 只预留空间. resize 才改变元素个数.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.capacity"
+        },
+        {
+          "title": "vector：pop_back、resize、clear",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{1, 2, 3};\nv.pop_back();\nv.resize(1);\nstd::cout << v.front() << ' ' << v.size();\nv.clear();\nstd::cout << '\\n' << v.empty();",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {原序列};\n\\node[cell] (a0) at (0,0) {1};\n\\node[cell] (a1) at (0.9,0) {2};\n\\node[cell] (a2) at (1.8,0) {3};\n\\node[lab,anchor=east] at (-.6,-1) {缩短后};\n\\node[cell] (b0) at (0,-1) {1};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 1",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "1",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "pop_back 是 \\(O(1)\\). clear 要销毁全部元素，按操作次数算是 \\(O(n)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.capacity 与 https://eel.is/c++draft/vector.modifiers"
+        },
+        {
+          "title": "vector：复制值与引用",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20, 30};\nfor (int x : v) x += 1;\nfor (int x : v) std::cout << x << ' ';\nstd::cout << '\\n';\nfor (int& x : v) x += 1;\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {10};\n\\node[cell] (a1) at (0.9,0) {20};\n\\node[cell] (a2) at (1.8,0) {30};\n\\node[lab,anchor=east] at (-.6,0) {int x};\n\\node[cell] (b0) at (0,-0.85) {11};\n\\node[cell] (b1) at (0.9,-0.85) {21};\n\\node[cell] (b2) at (1.8,-0.85) {31};\n\\node[lab,anchor=east] at (-.6,-.85) {int\\& x};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "10 20 30",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "11 21 31",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：用一分的成绩调整说明复制与引用的差别.只介绍本例必需的引用语法，不展开引用折叠或模板."
+        },
+        {
+          "title": "vector：emplace_back",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<std::string> words;\nwords.emplace_back(3, 'A');\nwords.push_back(\"B\");\nwords.emplace(words.begin(), 2, 'C');\nfor (const auto& s : words) std::cout << s << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "CC AAA B",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "这里把 3 和 A 交给 string 的构造函数. 不保证每种情况下都比 push_back 快.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.modifiers"
+        }
+      ]
+    },
+    {
+      "title": "size 与迭代器",
+      "slides": [
+        {
+          "title": "size() 的返回类型",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v;\nusing S = decltype(v.size());\nstd::cout << std::boolalpha\n          << std::is_unsigned<S>::value << ' '\n          << (v.size() - 1 > v.size());",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {0};\n\\node[lab,anchor=east] at (-.6,0) {size()};\n\\draw[edge] (.6,0)--(1.5,0);\n\\node[lab,anchor=west] at (1.8,0) {无符号减 1，绕到最大值};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "true true",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "size() 返回无符号的 size_type，不是 int. 空容器不要直接用 size()-1.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：https://eel.is/c++draft/container.reqmts https://eel.is/c++draft/conv.integral"
+        },
+        {
+          "title": "需要 int 时再转",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20, 30};\nif (v.size() > static_cast<decltype(v.size())>(INT_MAX))\n    return 0;\nint n = static_cast<int>(v.size());\nfor (int i = n - 1; i >= 0; --i)\n    std::cout << v[i] << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {10};\n\\node[cell] (a1) at (0.9,0) {20};\n\\node[cell] (a2) at (1.8,0) {30};\n\\draw[edge] (2.2,-.7)--(-.3,-.7);"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "30 20 10",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "先确认长度能放进 int，再转型. n 为 0 时，这个循环不会执行.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：需要 <climits>. https://eel.is/c++draft/conv.integral"
+        },
+        {
+          "title": "C++20：std::ssize",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20, 30};\nfor (auto i = std::ssize(v) - 1; i >= 0; --i)\n    std::cout << v[i] << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "30 20 10",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "std::ssize 返回有符号长度. 需要 <iterator>，用 C++20 编译.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：https://eel.is/c++draft/iterator.range"
+        },
+        {
+          "title": "指针与 vector 的迭代器",
+          "blocks": [
+            {
+              "type": "columns",
+              "alignment": "top",
+              "columns": [
+                {
+                  "width": 0.58,
+                  "blocks": [
+                    {
+                      "type": "code",
+                      "language": "C++",
+                      "content": "std::vector<int> v{10, 20, 30};\nint* p = v.data();\nauto it = v.begin();\nstd::cout << *p << ' ' << *it << '\\n';\n++p;\n++it;\nstd::cout << *p << ' ' << *it;",
+                      "fontSize": "small"
+                    }
+                  ]
+                },
+                {
+                  "width": 0.38,
+                  "blocks": [
+                    {
+                      "type": "tikz",
+                      "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {10};\n\\node[cell] (a1) at (0.9,0) {20};\n\\node[cell] (a2) at (1.8,0) {30};\n\\node[lab] at (0,.95) {p，it};\n\\draw[edge] (0,.7)--(0,.3);\n\\node[lab] at (.9,-.95) {++p，++it};\n\\draw[edge] (.9,-.7)--(.9,-.3);"
+                    },
+                    {
+                      "type": "text",
+                      "paragraphs": [
+                        [
+                          {
+                            "text": "10 10",
+                            "code": true
+                          }
+                        ],
+                        [
+                          {
+                            "text": "20 20",
+                            "code": true
+                          }
+                        ]
+                      ],
+                      "fontSize": "small"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "content": "这里都访问同一组元素. vector 的迭代器不要求就是裸指针.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：https://eel.is/c++draft/vector.data https://eel.is/c++draft/iterator.requirements.general"
+        },
+        {
+          "title": "begin 与 end",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20, 30};\nfor (auto it = v.begin(); it != v.end(); ++it)\n    std::cout << *it << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (n0) at (0,0) {10};\n\\node[lab] at (0,-0.58) {0};\n\\node[cell] (n1) at (0.9,0) {20};\n\\node[lab] at (0.9,-0.58) {1};\n\\node[cell] (n2) at (1.8,0) {30};\n\\node[lab] at (1.8,-0.58) {2};\n\\node[cell,dashed,fill=white] (end) at (3.1,0) {};\n\\node[lab] at (0,1) {begin()};\n\\node[lab] at (3.1,1) {end()};\n\\draw[edge] (0,.75)--(0,.32);\n\\draw[edge] (3.1,.75)--(3.1,.32);"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "10 20 30",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "end 不指向元素，不能解引用.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：虚线格仅表示末尾之后的位置，不是实际元素.来源：https://eel.is/c++draft/container.reqmts .图为自制 TikZ."
+        },
+        {
+          "title": "list 的 ++ 与 std::next",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::list<int> a{10, 20, 30};\nauto it = a.begin();\n++it;\nstd::cout << *it << ' ';\nstd::cout << *std::next(a.begin(), 2);",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {10};\n\\node[cell] (a1) at (1.5,0) {20};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (a0.east)--(a1.west);\n\\node[cell] (a2) at (3,0) {30};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (a1.east)--(a2.west);\n\\node[lab] at (1.5,-.8) {++it};\n\\node[lab] at (3,.8) {next(begin,2)};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "20 30",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "list 不能写 it+2. next 往后走 k 步，开销是 \\(O(k)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：需要 <list>、<iterator>. https://eel.is/c++draft/iterator.operations"
+        },
+        {
+          "title": "只读与反向遍历",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20, 30};\nfor (auto it = v.crbegin(); it != v.crend(); ++it)\n    std::cout << *it << ' ';\nstd::cout << '\\n' << *std::next(v.cbegin(), 1);",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (n0) at (0,0) {10};\n\\node[lab] at (0,-0.58) {0};\n\\node[cell] (n1) at (0.9,0) {20};\n\\node[lab] at (0.9,-0.58) {1};\n\\node[cell] (n2) at (1.8,0) {30};\n\\node[lab] at (1.8,-0.58) {2};\n\\draw[edge] (2.25,-1)--(-.4,-1);\n\\node[lab] at (.9,-1.5) {反向遍历：30，20，10};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "30 20 10",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "20",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "forward_list 没有反向迭代器.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/iterator.operations"
+        },
+        {
+          "title": "erase 后接着遍历",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{1, 2, 3, 4};\nfor (auto it = v.begin(); it != v.end();) {\n    if (*it % 2 == 0) it = v.erase(it);\n    else ++it;\n}\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {过滤前};\n\\node[cell] (a0) at (0,0) {1};\n\\node[cell] (a1) at (0.9,0) {2};\n\\node[cell] (a2) at (1.8,0) {3};\n\\node[cell] (a3) at (2.7,0) {4};\n\\node[lab,anchor=east] at (-.6,-1) {过滤后};\n\\node[cell] (b0) at (0,-1) {1};\n\\node[cell] (b1) at (0.9,-1) {3};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 3",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "接住 erase 返回的位置. 反复搬动后续元素，这种过滤最坏是 \\(O(n^2)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.modifiers"
+        },
+        {
+          "title": "remove 以后还要 erase",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{1, 2, 2, 3};\nauto tail = std::remove(v.begin(), v.end(), 2);\nv.erase(tail, v.end());\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {remove 后};\n\\node[cell] (r0) at (0,0) {1};\n\\node[cell] (r1) at (0.9,0) {3};\n\\node[cell] (r2) at (1.8,0) {?};\n\\node[cell] (r3) at (2.7,0) {?};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 3",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "remove 以后 size 没变. 两步合起来过滤，开销是 \\(O(n)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/alg.remove 与 https://eel.is/c++draft/vector.erasure"
+        },
+        {
+          "title": "C++20：erase_if",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{1, 2, 3, 4};\nstd::erase_if(v, [](int x) { return x % 2 == 0; });\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 3",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "需要 C++20. 扫一遍，开销是 \\(O(n)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.erasure"
+        },
+        {
+          "title": "哪些位置会失效",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "操作",
+                "影响"
+              ],
+              "rows": [
+                [
+                  "vector 扩容",
+                  "所有元素指针、引用、迭代器"
+                ],
+                [
+                  "vector 插入，未扩容",
+                  "插入点及其后，包括旧 end"
+                ],
+                [
+                  "vector 删除",
+                  "删除点及其后，包括旧 end"
+                ],
+                [
+                  "deque 首尾插入",
+                  "迭代器失效，已有元素引用保留"
+                ],
+                [
+                  "list 删除",
+                  "指向被删元素的位置"
+                ]
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "https://eel.is/c++draft/vector.modifiers https://eel.is/c++draft/deque.modifiers https://eel.is/c++draft/list.modifiers"
+        }
+      ]
+    },
+    {
+      "title": "deque、list、forward_list",
+      "slides": [
+        {
+          "title": "deque：两端操作",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::deque<int> q{101, 102};\nq.push_back(103);\nq.push_front(99);\nstd::cout << q.front() << '\\n';\nq.pop_front();\nfor (int x : q) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (n0) at (0,0) {99};\n\\node[lab] at (0,-0.58) {0};\n\\node[cell] (n1) at (0.9,0) {101};\n\\node[lab] at (0.9,-0.58) {1};\n\\node[cell] (n2) at (1.8,0) {102};\n\\node[lab] at (1.8,-0.58) {2};\n\\node[cell] (n3) at (2.7,0) {103};\n\\node[lab] at (2.7,-0.58) {3};\n\\node[lab,align=center] at (0,1.2) {front\\\\从这里出队};\n\\node[lab,align=center] at (2.7,1.2) {back\\\\从这里入队};\n\\draw[edge] (0,.65)--(0,.32);\n\\draw[edge] (2.7,.65)--(2.7,.32);"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "99",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "101 102 103",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "下标访问和单个元素的首尾修改是 \\(O(1)\\). 中间修改最坏是 \\(O(n)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：头文件 <deque>.示例中 99 先出队.需要它的值时，先读取 front 再 pop_front.类比示例并不规定真实排队的优先政策.来源：https://eel.is/c++draft/deque.overview ."
+        },
+        {
+          "title": "list：insert 与 erase",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::list<std::string> songs{\"A\", \"C\"};\nauto pos = std::next(songs.begin());\nsongs.insert(pos, \"B\");\nsongs.erase(pos);\nfor (const auto& s : songs) std::cout << s << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {最初};\n\\node[cell] (a0) at (0,0) {A};\n\\node[cell] (a1) at (1.8,0) {C};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (a0.east)--(a1.west);\n\\node[lab,anchor=east] at (-.6,-1) {插入 B};\n\\node[cell] (b0) at (0,-1) {A};\n\\node[focus] (b1) at (1.8,-1) {B};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (b0.east)--(b1.west);\n\\node[cell] (b2) at (3.6,-1) {C};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (b1.east)--(b2.west);\n\\node[lab,anchor=east] at (-.6,-2) {删除 C};\n\\node[cell] (c0) at (0,-2) {A};\n\\node[cell] (c1) at (1.8,-2) {B};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (c0.east)--(c1.west);\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "A B",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "已经拿到位置时，单个元素的插入、删除是 \\(O(1)\\). 找位置另算.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：头文件 <list>、<string>、<iterator>.std::next 返回下一个位置.list 插入 B 不会让原来指向 C 的 pos 失效，删除 C 后不要再使用 pos.快的是已知位置处的修改，不是寻找位置.来源：https://eel.is/c++draft/list.overview ."
+        },
+        {
+          "title": "list：sort、unique、remove",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::list<int> a{3, 1, 1, 2, 1};\na.sort();\na.unique();\na.remove(2);\nfor (int x : a) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 3",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "sort 是 \\(O(n\\log n)\\). unique 只去掉相邻重复项.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：先问 unique 能否直接删除原序列里全部重复的 1.原序列的末尾 1 与前面的 1 不相邻.std::sort 需要随机访问迭代器，本次不要求记住术语.来源：https://eel.is/c++draft/list.ops ."
+        },
+        {
+          "title": "list：splice",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::list<int> a{1, 4};\nstd::list<int> b{2, 3};\na.splice(std::next(a.begin()), b);\nfor (int x : a) std::cout << x << ' ';\nstd::cout << '\\n' << b.empty();",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {a};\n\\node[cell] (n0) at (0,0) {1};\n\\node[cell] (n1) at (1.5,0) {2};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (n0.east)--(n1.west);\n\\node[cell] (n2) at (3,0) {3};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (n1.east)--(n2.west);\n\\node[cell] (n3) at (4.5,0) {4};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (n2.east)--(n3.west);\n\\node[lab] at (1.5,-1) {b 变空，原有节点转移给 a};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 2 3 4",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "1",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "默认分配器下，整表转移是 \\(O(1)\\)，不逐个复制元素.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/list.ops"
+        },
+        {
+          "title": "list：merge 与 remove_if",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::list<int> a{1, 3}, b{2, 4};\na.merge(b);\na.reverse();\na.remove_if([](int x) { return x % 2 == 0; });\nfor (int x : a) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "3 1",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "merge 前双方都要有序，开销是 \\(O(n+m)\\). reverse、remove_if 是 \\(O(n)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/list.ops"
+        },
+        {
+          "title": "forward_list：after",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::forward_list<int> tasks{20, 30};\ntasks.push_front(10);\nauto pos = tasks.begin();\ntasks.erase_after(pos);\ntasks.insert_after(pos, 15);\nfor (int x : tasks) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {初始任务};\n\\node[cell] (a0) at (0,0) {10};\n\\node[cell] (a1) at (1.6,0) {20};\n\\draw[-{Stealth},thick,njupurple] (a0.east)--(a1.west);\n\\node[cell] (a2) at (3.2,0) {30};\n\\draw[-{Stealth},thick,njupurple] (a1.east)--(a2.west);\n\\node[lab,anchor=east] at (-.6,-1) {删除后继};\n\\node[cell] (b0) at (0,-1) {10};\n\\node[cell] (b1) at (1.6,-1) {30};\n\\draw[-{Stealth},thick,njupurple] (b0.east)--(b1.west);\n\\node[lab,anchor=east] at (-.6,-2) {插入后继};\n\\node[cell] (c0) at (0,-2) {10};\n\\node[focus] (c1) at (1.6,-2) {15};\n\\draw[-{Stealth},thick,njupurple] (c0.east)--(c1.west);\n\\node[cell] (c2) at (3.2,-2) {30};\n\\draw[-{Stealth},thick,njupurple] (c1.east)--(c2.west);\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "10 15 30",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "已经拿到前驱时，单个元素的 after 操作是 \\(O(1)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：头文件 <forward_list>.单向链表适合从前向后遍历.erase_after 要求后面确实有可以删除的元素.来源：https://eel.is/c++draft/forward.list.modifiers ."
+        },
+        {
+          "title": "forward_list：before_begin",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::forward_list<int> a{10, 20};\na.insert_after(a.before_begin(), 5);\na.erase_after(a.before_begin());\nfor (int x : a) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "10 20",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "没有 size、back、push_back. before_begin 本身不能解引用.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：避免将 before_begin 与 begin 混淆.访问 begin 指向首元素，after(before_begin) 才操作首元素.来源：https://eel.is/c++draft/forward.list.overview 与 https://eel.is/c++draft/forward.list.modifiers ."
+        },
+        {
+          "title": "forward_list：sort 与 merge",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::forward_list<int> a{3, 1, 1, 2};\na.sort();\na.unique();\na.remove(2);\nstd::forward_list<int> b{0, 4};\na.merge(b);\na.reverse();\nfor (int x : a) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "4 3 1 0",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "sort 是 \\(O(n\\log n)\\)，merge 是 \\(O(n+m)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/forward.list.ops"
+        }
+      ]
+    },
+    {
+      "title": "string",
+      "slides": [
+        {
+          "title": "string：拼接、截取、查找",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::string s = \"nju\";\ns += \" beamer\";\ns[0] = 'N';\nstd::cout << s << '\\n';\nstd::cout << s.substr(0, 3) << '\\n';\nstd::cout << s.find(\"beamer\");",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (s0) at (0,0) {N};\n\\node[cell] (s1) at (0.7,0) {j};\n\\node[cell] (s2) at (1.4,0) {u};\n\\node[cell] (s3) at (2.0999999999999996,0) {\\textvisiblespace};\n\\node[cell] (s4) at (2.8,0) {b};\n\\node[cell] (s5) at (3.5,0) {e};\n\\node[cell] (s6) at (4.199999999999999,0) {a};\n\\node[cell] (s7) at (4.8999999999999995,0) {m};\n\\node[cell] (s8) at (5.6,0) {e};\n\\node[cell] (s9) at (6.3,0) {r};\n\\draw[njupurple,thick] (-.3,-.45)--(1.7,-.45);\n\\node[lab] at (.7,-.8) {substr(0,3)};\n\\node[lab] at (2.8,.9) {find(\"beamer\") = 4};\n\\draw[edge] (2.8,.65)--(2.8,.3);"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "Nju beamer",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "Nju",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "4",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：头文件 <string>.字符用单引号，字符串用双引号.位置从 0 开始，空格也占一个位置.本报告示例使用 ASCII 文本.来源：https://eel.is/c++draft/string.classes 与 https://eel.is/c++draft/string.find ."
+        },
+        {
+          "title": "string：修改",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::string s = \"NJU\";\ns.append(\" C++\");\ns.insert(3, \"!\");\ns.erase(3, 1);\ns.replace(4, 3, \"STL\");\nstd::cout << s;",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {最终字符};\n\\node[cell] (n0) at (0,0) {N};\n\\node[lab] at (0,-0.58) {0};\n\\node[cell] (n1) at (0.9,0) {J};\n\\node[lab] at (0.9,-0.58) {1};\n\\node[cell] (n2) at (1.8,0) {U};\n\\node[lab] at (1.8,-0.58) {2};\n\\node[cell] (n3) at (2.7,0) {\\textvisiblespace};\n\\node[lab] at (2.7,-0.58) {3};\n\\node[cell] (n4) at (3.6,0) {S};\n\\node[lab] at (3.6,-0.58) {4};\n\\node[cell] (n5) at (4.5,0) {T};\n\\node[lab] at (4.5,-0.58) {5};\n\\node[cell] (n6) at (5.4,0) {L};\n\\node[lab] at (5.4,-0.58) {6};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "NJU STL",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "中间修改会移动后续字符，开销与修改长度和位置有关.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/string.modifiers"
+        },
+        {
+          "title": "string：getline",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::string line;\nstd::getline(std::cin, line);\nstd::cout << line << '\\n' << line.size();",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "NJU Beamer",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "10",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "输入 NJU Beamer. 混用 cin 和 getline 时，先处理留下的换行.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：表中两种读取是分别运行的结果.代码示例从新输入开始.先 cin >> n 再读取一整行时，可用 cin.ignore(numeric_limits<streamsize>::max(), '\n') 丢弃当前行余下部分，需要 <limits>.getline(cin >> ws, s) 会跳过全部前导空白，适合不需要保留前导空格的输入.来源：https://eel.is/c++draft/string.io ."
+        },
+        {
+          "title": "string：npos",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::string s = \"good morning\";\nauto pos = s.find(\"bye\");\nif (pos == std::string::npos) {\n    std::cout << \"not found\";\n} else {\n    std::cout << s.substr(pos);\n}",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "not found",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "0 表示在开头找到，npos 才表示没找到.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：突出 0 也是合法查找结果.npos 是没有匹配的位置标记，不展开整数类型与编码细节.来源：https://eel.is/c++draft/string.find 与 https://eel.is/c++draft/string.classes ."
+        },
+        {
+          "title": "string：find 与 rfind",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::string s = \"a,b,c\";\nstd::cout << s.find(',') << ' ';\nstd::cout << s.rfind(',') << ' ';\nstd::cout << s.find_first_of(\",;\") << ' ';\nstd::cout << s.find_first_not_of(\"a,\");",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {a};\n\\node[cell] (a1) at (0.9,0) {,};\n\\node[cell] (a2) at (1.8,0) {b};\n\\node[cell] (a3) at (2.7,0) {,};\n\\node[cell] (a4) at (3.6,0) {c};\n\\node[lab] at (.9,-.8) {find};\n\\node[lab] at (2.7,-.8) {rfind};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 3 1 2",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/string.find"
+        },
+        {
+          "title": "string：stoi 可以只读前缀",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::string a = \"apple\", b = \"banana\";\nstd::cout << (a < b) << ' ';\nstd::size_t used = 0;\nint n = std::stoi(\"42kg\", &used);\nstd::cout << n << ' ' << used << ' ';\nstd::cout << std::to_string(n + 1);",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 42 2 43",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "42kg 也能转成 42. 要求完整数字时，检查 used 是否等于长度.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/string.conversions"
+        },
+        {
+          "title": "string：拆分",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::string line;\nstd::getline(std::cin, line);\nstd::istringstream in(line);\nstd::string field;\nwhile (std::getline(in, field, ','))\n    std::cout << '[' << field << ']';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.6,0) {拆分结果};\n\\node[cell] (n0) at (0,0) {A};\n\\node[cell] (n1) at (1.4,0) {B};\n\\node[cell] (n2) at (2.8,0) {C};\n"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "[A][B][C]",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "输入 A,B,C. 这里只按逗号拆分，不处理带引号的 CSV.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/string.io 与 https://eel.is/c++draft/istringstream"
+        },
+        {
+          "title": "data 与 c_str",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{10, 20};\nint* p = v.data();\np[0] = 11;\nstd::string s = \"NJU\";\nconst char* text = s.c_str();\nstd::cout << v[0] << ' ' << text;",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "11 NJU",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "地址由容器拥有. 不要释放，也不要在失效后继续访问.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/vector.data 与 https://eel.is/c++draft/string.accessors"
+        }
+      ]
+    },
+    {
+      "title": "其他常用写法与例子",
+      "slides": [
+        {
+          "title": "二维 vector",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<std::vector<int>> a{{1, 2, 3}, {4}};\na[1].push_back(5);\nstd::cout << a[0][2] << ' ' << a[1].size();",
+              "fontSize": "small"
+            },
+            {
+              "type": "image",
+              "file": "examples/assets/stl/figure02_10.png",
+              "width": 0.6,
+              "alt": "教材图 figure02_10.png"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "3 2",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "每一行可以有不同长度. 整张表不保证连续.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：用户提供章节图 2.10 与 https://eel.is/c++draft/vector.overview"
+        },
+        {
+          "title": "sort、find、accumulate",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{3, 1, 2};\nstd::sort(v.begin(), v.end());\nauto it = std::find(v.begin(), v.end(), 2);\nstd::cout << (it != v.end()) << ' ';\nstd::cout << std::accumulate(v.begin(), v.end(), 0);",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 6",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "sort 是 \\(O(n\\log n)\\). find、accumulate 是 \\(O(n)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/alg.sort 与 https://eel.is/c++draft/alg.find 与 https://eel.is/c++draft/accumulate"
+        },
+        {
+          "title": "复制、swap 与比较",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> a{1, 2}, b{1, 3};\nstd::cout << (a < b) << ' ';\na.swap(b);\nstd::vector<int> copy = a;\ncopy[0] = 9;\nstd::cout << a[0] << ' ' << copy[0];",
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 1 9",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "复制是 \\(O(n)\\). 默认分配器下，vector 的 swap 是 \\(O(1)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：扩展速查，可按需求选讲.来源：https://eel.is/c++draft/container.reqmts"
+        },
+        {
+          "title": "vector<bool> 的 auto",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<bool> v{true};\nauto x = v[0];\nbool y = v[0];\nx = false;\nstd::cout << std::boolalpha\n          << v[0] << ' ' << y;",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {0};\n\\node[lab,anchor=east] at (-.6,0) {v[0]};\n\\node[lab] at (0,1) {x：代理引用};\n\\draw[edge] (0,.75)--(0,.3);\n\\node[cell] at (2.5,0) {1};\n\\node[lab] at (2.5,1) {y：bool 副本};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "false true",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "x 保留代理引用，改 x 会改到 v[0]. y 已经复制成 bool.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：https://eel.is/c++draft/vector.bool.pspc"
+        },
+        {
+          "title": "每次 reserve(size()+1)",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v;\nfor (int x = 0; x < 4; ++x) {\n    v.reserve(v.size() + 1);\n    v.push_back(x);\n}\nfor (int x : v) std::cout << x << ' ';",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {0};\\node[cell] (b0) at (0,-0.8) {0};\n\\node[cell] (b1) at (0.9,-0.8) {1};\\node[cell] (c0) at (0,-1.6) {0};\n\\node[cell] (c1) at (0.9,-1.6) {1};\n\\node[cell] (c2) at (1.8,-1.6) {2};\n\\node[lab] at (4,-.8) {若每次只给所需容量，反复搬迁};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "0 1 2 3",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "这种写法可能反复扩容，搬迁总量到 \\(O(n^2)\\). 能估计长度时，一次 reserve.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：容量行为依赖实现，图表示每次恰好分配请求容量的可能情况. https://eel.is/c++draft/vector.capacity"
+        },
+        {
+          "title": "每次删 vector 的开头",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::vector<int> v{0, 1, 2, 3};\nwhile (!v.empty()) {\n    std::cout << v.front() << ' ';\n    v.erase(v.begin());\n}",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {0};\n\\node[cell] (a1) at (0.9,0) {1};\n\\node[cell] (a2) at (1.8,0) {2};\n\\node[cell] (a3) at (2.7,0) {3};\\node[cell] (b0) at (0,-0.8) {1};\n\\node[cell] (b1) at (0.9,-0.8) {2};\n\\node[cell] (b2) at (1.8,-0.8) {3};\\node[cell] (c0) at (0,-1.6) {2};\n\\node[cell] (c1) at (0.9,-1.6) {3};"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "0 1 2 3",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "后续元素会随着移动. 总共搬动 \\(n(n-1)/2\\) 次，开销是 \\(O(n^2)\\).",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：https://eel.is/c++draft/vector.modifiers"
+        },
+        {
+          "title": "vector 与普通数组",
+          "blocks": [
+            {
+              "type": "table",
+              "columns": [
+                "比较",
+                "int a[N]",
+                "vector<int>"
+              ],
+              "rows": [
+                [
+                  "访问与遍历",
+                  "连续存储",
+                  "连续存储，通常可优化得相近"
+                ],
+                [
+                  "长度",
+                  "创建后固定",
+                  "运行时可以改变"
+                ],
+                [
+                  "空间管理",
+                  "静态或局部数组不用动态分配",
+                  "管理动态存储，可能预留多余空间"
+                ],
+                [
+                  "地址",
+                  "对象存活期间固定",
+                  "扩容时地址会变"
+                ],
+                [
+                  "初始化",
+                  "局部数组不自动置零",
+                  "vector<int>(n) 初始化为 0"
+                ]
+              ],
+              "fontSize": "small"
+            }
+          ],
+          "notes": "这里比较固定长度的内置数组，不把所有数组都说成栈上存储. 动态 new[] 数组也需要分配内存. vector<bool> 不属于普通连续元素情形. https://eel.is/c++draft/vector.overview"
+        },
+        {
+          "title": "只比较遍历求和",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "long long sum = 0;\nfor (int i = 0; i < n; ++i) sum += a[i];\n\nlong long sum2 = 0;\nfor (int x : v) sum2 += x;",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[lab,anchor=east] at (-.2,.8) {数组};\n\\node[lab,anchor=east] at (-.2,0) {vector};\n\\fill[njupurple!65] (0,.55) rectangle (4.435574,1.05);\n\\fill[orange!65] (0,-.25) rectangle (4.1796755,.25);\n\\node[lab,anchor=west] at (4.635574,.8) {0.068 ms};\n\\node[lab,anchor=west] at (4.3796755,0) {0.064 ms};"
+            },
+            {
+              "type": "text",
+              "content": "本机 arm64，Apple Clang 17，-O3. 100 万个 int，9 组中位数，每组 64 次. 分配和初始化不计时.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "测量源码 .tmp/docs/stl-speed.cpp. 改动一个元素避免跨次循环提升，使用校验和，交替测试顺序. 结果只对应这次环境与遍历操作，不是普遍速度排序."
+        },
+        {
+          "title": "list 的位置可以跟着节点转移",
+          "blocks": [
+            {
+              "type": "code",
+              "language": "C++",
+              "content": "std::list<int> a{1}, b{2, 3};\nauto it = b.begin();\na.splice(a.end(), b);\n*it = 9;\nfor (int x : a) std::cout << x << ' ';\nstd::cout << '\\n' << b.empty();",
+              "fontSize": "small"
+            },
+            {
+              "type": "tikz",
+              "source": "\\tikzset{cell/.style={draw=njupurple,fill=njupurple!8,minimum width=.9cm,minimum height=.58cm,inner sep=3pt},focus/.style={cell,fill=orange!25,draw=orange!80!black},lab/.style={font=\\small},edge/.style={-{Stealth},thick,njupurple}}\n\\node[cell] (a0) at (0,0) {1};\n\\node[cell] (a1) at (1.5,0) {9};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (a0.east)--(a1.west);\n\\node[cell] (a2) at (3,0) {3};\n\\draw[{Stealth}-{Stealth},thick,njupurple] (a1.east)--(a2.west);\n\\node[lab] at (1.5,.95) {原来 b.begin() 的位置};\n\\draw[edge] (1.5,.7)--(1.5,.3);"
+            },
+            {
+              "type": "text",
+              "paragraphs": [
+                [
+                  {
+                    "text": "1 9 3",
+                    "code": true
+                  }
+                ],
+                [
+                  {
+                    "text": "1",
+                    "code": true
+                  }
+                ]
+              ],
+              "fontSize": "small"
+            },
+            {
+              "type": "text",
+              "content": "节点到了 a 里面，it 仍指向同一个元素.",
+              "fontSize": "small"
+            }
+          ],
+          "notes": "参考：https://eel.is/c++draft/list.ops"
+        },
+        {
+          "title": "参考资料",
+          "blocks": [
+            {
+              "type": "text",
+              "fontSize": "small",
+              "paragraphs": [
+                [
+                  {
+                    "text": "C++ Primer，第 3、9 章"
+                  }
+                ],
+                [
+                  {
+                    "text": "cppreference：容器接口",
+                    "href": "https://en.cppreference.com/w/cpp/container/vector.html"
+                  }
+                ],
+                [
+                  {
+                    "text": "OI Wiki：序列式容器",
+                    "href": "https://oi.wiki/lang/csl/sequence-container/"
+                  }
+                ],
+                [
+                  {
+                    "text": "C++ 标准草案",
+                    "href": "https://eel.is/c++draft/sequences"
+                  }
+                ]
+              ]
+            }
+          ],
+          "notes": "二维容器原图来自 DH 第 2 章图 2.10. 其余数据操作图为可编辑 TikZ."
+        },
+        {
+          "kind": "ending",
+          "title": "结尾页",
+          "blocks": [
+            {
+              "type": "text",
+              "content": "Thanks",
+              "fontSize": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

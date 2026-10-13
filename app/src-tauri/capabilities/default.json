@@ -3,5 +3,5 @@
   "identifier": "main-window",
   "description": "Capabilities required by the NJU Beamer editor window",
   "windows": ["main"],
-  "permissions": ["core:default", "core:window:allow-destroy", "dialog:allow-open", "dialog:allow-save"]
+  "permissions": ["core:default", "core:window:allow-destroy", "core:window:allow-set-title", "core:window:allow-set-fullscreen", "dialog:allow-open", "dialog:allow-save"]
 }

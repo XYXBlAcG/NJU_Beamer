@@ -1,0 +1,261 @@
+{
+  "specVersion": 2,
+  "metadata": {
+    "title": "C++ STL 中的顺序容器",
+    "subtitle": "第 5 讲 · 开放课题 2",
+    "author": "谢宇轩",
+    "institute": "南京大学",
+    "date": "2026 年 10 月"
+  },
+  "settings": {
+    "bodyFont": "song",
+    "mathFont": { "preset": "times" },
+    "pageSize": { "preset": "16:9", "widthMm": 160, "heightMm": 90 },
+    "sectionTitleSlides": false,
+    "preamble": "\\setbeamertemplate{headline}{}\n\\setbeamertemplate{navigation symbols}{}"
+  },
+  "sections": [
+    {
+      "title": "五个具体问题",
+      "slides": [
+        { "kind": "title", "notes": "面向已经会使用 C++ 基本语法与数组的同学。按作业第二个开放课题，介绍 vector、deque、list、forward_list 和 string。代码使用 C++11 基础语法。建议讲解时间约 15 分钟，可按课堂时间省略练习答案页。" },
+        {
+          "title": "同样是一串数据，操作却不同",
+          "blocks": [
+            { "type": "list", "items": ["成绩表：不断追加成绩，还要查询第几个。", "排队名单：有人到队尾，也有人从队首离开。", "播放列表：在当前歌曲旁插入或删除歌曲。", "单向任务清单：从头向后处理，在已知位置后修改。", "一行命令：需要拼接、截取和查找文字。"], "fontSize": "small" },
+            { "type": "text", "content": "今天的问题：这些操作分别适合用哪一种容器？", "fontSize": "small" }
+          ],
+          "notes": "开场先让同学说自己会用数组处理哪一种任务。暂时不公布全部答案。这里的场景用于说明基本接口，不代表某个应用只能使用一种容器。"
+        },
+        {
+          "title": "本次介绍的五种容器",
+          "blocks": [
+            { "type": "table", "columns": ["容器", "直观理解", "本次关注的操作"], "rows": [["vector", "可变长数组", "下标访问、尾部追加"], ["deque", "双端队列", "首尾插入和删除"], ["list", "双向链表", "在已知位置附近修改"], ["forward_list", "单向链表", "在已知位置后修改"], ["string", "字符序列", "拼接、截取、查找"]], "fontSize": "small" },
+            { "type": "text", "content": "顺序指元素的排列次序。list 与 forward_list 的元素不必连续存储。", "fontSize": "small" }
+          ],
+          "notes": "作业将 string 与顺序容器一并介绍。本报告按这一范围组织，标准库中 basic_string 位于字符串部分。链表结构仅用来帮助理解接口，不展开内存分配或实现细节。来源：https://eel.is/c++draft/sequences 与 https://eel.is/c++draft/string.classes 。"
+        },
+        {
+          "title": "声明与遍历的基本写法",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "#include <vector>\n#include <iostream>\n\nstd::vector<int> scores{80, 90, 95};\nfor (int x : scores) {\n    std::cout << x << ' ';\n}" },
+            { "type": "text", "content": "输出：80 90 95", "fontSize": "small" },
+            { "type": "text", "content": "vector<int> 指定元素类型。后续核心代码放在 main 中，并包含相应头文件。", "fontSize": "small" }
+          ],
+          "notes": "本页展示头文件和 main 中的核心语句，不是完整程序。deque、list、forward_list、string 分别需要 <deque>、<list>、<forward_list>、<string>。所有代码保留 std::，避免额外引入命名空间概念。范围 for 用来按顺序访问每个元素。来源：https://eel.is/c++draft/vector.overview 。"
+        }
+      ]
+    },
+    {
+      "title": "vector 与 deque",
+      "slides": [
+        {
+          "title": "vector：追加和查询成绩",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::vector<int> scores{80, 90};\nscores.push_back(95);\nscores[1] = 92;\nstd::cout << scores.size() << '\\n';\nstd::cout << scores.front() << ' ';\nstd::cout << scores.back() << '\\n';\nfor (int x : scores) std::cout << x << ' ';" },
+            { "type": "text", "content": "输出：第一行 3，第二行 80 95，第三行 80 92 95。", "fontSize": "small" },
+            { "type": "text", "content": "下标从 0 开始。push_back 追加，size 查看元素个数，front/back 访问首尾。", "fontSize": "small" }
+          ],
+          "notes": "先让听众判断 scores[1] 指向哪一项。访问 front/back 前要求容器非空。vector 的尾部追加具有摊还常数复杂度，本次报告只需掌握用途。来源：https://eel.is/c++draft/vector.overview 。"
+        },
+        {
+          "title": "小括号与花括号",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::vector<int> a(3, 7);\nstd::vector<int> b{3, 7};\nstd::vector<int> c(3);\nfor (int x : a) std::cout << x << ' ';\nstd::cout << '\\n';\nfor (int x : b) std::cout << x << ' ';\nstd::cout << '\\n';\nfor (int x : c) std::cout << x << ' ';" },
+            { "type": "table", "columns": ["声明", "内容", "元素个数"], "rows": [["a(3, 7)", "7 7 7", "3"], ["b{3, 7}", "3 7", "2"], ["c(3)", "0 0 0", "3"]], "fontSize": "small" }
+          ],
+          "notes": "提问：a 与 b 一样吗？这里元素类型为 int，花括号使用元素列表初始化。不要将该例子推广为所有元素类型的全部构造规则。来源：https://eel.is/c++draft/vector.overview 。"
+        },
+        {
+          "title": "vector：在指定位置插入和删除",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::vector<int> v{10, 20, 30};\nv.insert(v.begin() + 1, 15);\nv.erase(v.begin() + 2);\nfor (int x : v) std::cout << x << ' ';" },
+            { "type": "table", "columns": ["时刻", "内容"], "rows": [["最初", "10 20 30"], ["插入 15 后", "10 15 20 30"], ["删除下标 2 的元素后", "10 15 30"]], "fontSize": "small" },
+            { "type": "text", "content": "insert 在指定位置之前插入。erase 删除指定位置的元素，后续元素会移动。", "fontSize": "small" }
+          ],
+          "notes": "begin() 表示第一个元素的位置。vector 支持位置加整数，begin()+2 是第三个元素的位置。不要将这种写法用于 list。来源：https://eel.is/c++draft/vector.overview 。"
+        },
+        {
+          "title": "遍历时修改元素",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::vector<int> v{10, 20, 30};\nfor (int x : v) x += 1;\nfor (int x : v) std::cout << x << ' ';\nstd::cout << '\\n';\nfor (int& x : v) x += 1;\nfor (int x : v) std::cout << x << ' ';" },
+            { "type": "text", "content": "输出：第一行 10 20 30，第二行 11 21 31。", "fontSize": "small" },
+            { "type": "text", "content": "int x 复制当前元素。int& x 引用原元素，对 x 的修改会保留在容器中。", "fontSize": "small" }
+          ],
+          "notes": "用一分的成绩调整说明复制与引用的差别。只介绍本例必需的引用语法，不展开引用折叠或模板。"
+        },
+        {
+          "title": "deque：队伍的两端",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::deque<int> q{101, 102};\nq.push_back(103);\nq.push_front(99);\nstd::cout << q.front() << '\\n';\nq.pop_front();\nfor (int x : q) std::cout << x << ' ';\nstd::cout << '\\n' << q[1];" },
+            { "type": "text", "content": "输出：第一行 99，第二行 101 102 103，第三行 102。", "fontSize": "small" },
+            { "type": "text", "content": "deque 可在两端 push/pop，也支持下标访问。pop_front 删除元素，不返回元素值。", "fontSize": "small" }
+          ],
+          "notes": "头文件 <deque>。示例中 99 先出队。需要它的值时，先读取 front 再 pop_front。类比示例并不规定真实排队的优先政策。来源：https://eel.is/c++draft/deque.overview 。"
+        },
+        {
+          "title": "vector 与 deque 的选择",
+          "blocks": [
+            { "type": "table", "columns": ["操作需求", "vector", "deque"], "rows": [["按下标访问", "支持", "支持"], ["尾部 push_back/pop_back", "支持", "支持"], ["头部 push_front/pop_front", "没有这两个接口", "支持"], ["中间插入和删除", "可能移动很多元素", "也可能移动很多元素"]], "fontSize": "small" },
+            { "type": "text", "content": "成绩表先考虑 vector。频繁操作两端的队伍可考虑 deque。", "fontSize": "small" }
+          ],
+          "notes": "vector 的非 bool 元素连续存储，deque 不保证整体连续。为满足作业的入门要求，口头可省略这一实现层面的区别。复杂度来源：https://eel.is/c++draft/vector.overview 与 https://eel.is/c++draft/deque.overview 。"
+        }
+      ]
+    },
+    {
+      "title": "list 与 forward_list",
+      "slides": [
+        {
+          "title": "迭代器：表示容器中的位置",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::list<int> a{10, 30};\nauto it = a.begin();\nstd::cout << *it << ' ';\n++it;\nstd::cout << *it;" },
+            { "type": "text", "content": "输出：10 30", "fontSize": "small" },
+            { "type": "list", "fontSize": "small", "items": ["begin() 表示第一个元素的位置。", "*it 访问当前位置的元素，++it 移到下一项。", "end() 表示末尾之后的位置，不能读取 *end()。", "list 没有下标访问，也不能写 begin() + 1。"] }
+          ],
+          "notes": "头文件 <list>。只建立位置的直觉，不展开迭代器分类。auto 让编译器推断迭代器类型。来源：https://eel.is/c++draft/list.overview 。"
+        },
+        {
+          "title": "list：修改播放列表",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::list<std::string> songs{\"A\", \"C\"};\nauto pos = std::next(songs.begin());\nsongs.insert(pos, \"B\");\nsongs.erase(pos);\nfor (const auto& s : songs) std::cout << s << ' ';" },
+            { "type": "table", "columns": ["时刻", "歌曲次序"], "rows": [["最初", "A C"], ["在 C 前插入 B", "A B C"], ["删除 pos 指向的 C", "A B"]], "fontSize": "small" },
+            { "type": "text", "content": "list 可在已知位置插入和删除。寻找第 k 个元素仍需要逐步走到那里。", "fontSize": "small" }
+          ],
+          "notes": "头文件 <list>、<string>、<iterator>。std::next 返回下一个位置。list 插入 B 不会让原来指向 C 的 pos 失效，删除 C 后不要再使用 pos。快的是已知位置处的修改，不是寻找位置。来源：https://eel.is/c++draft/list.overview 。"
+        },
+        {
+          "title": "list：排序和去重",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::list<int> a{3, 1, 1, 2, 1};\na.sort();\na.unique();\na.remove(2);\nfor (int x : a) std::cout << x << ' ';" },
+            { "type": "text", "content": "输出：1 3", "fontSize": "small" },
+            { "type": "list", "fontSize": "small", "items": ["sort 排序，remove(2) 删除所有值为 2 的元素。", "unique 只删除相邻重复项。这里先排序，再去重。", "list 使用成员 sort，不能直接传给 std::sort。"] }
+          ],
+          "notes": "先问 unique 能否直接删除原序列里全部重复的 1。原序列的末尾 1 与前面的 1 不相邻。std::sort 需要随机访问迭代器，本次不要求记住术语。来源：https://eel.is/c++draft/list.ops 。"
+        },
+        {
+          "title": "forward_list：在当前位置后修改",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::forward_list<int> tasks{20, 30};\ntasks.push_front(10);\nauto pos = tasks.begin();\ntasks.erase_after(pos);\ntasks.insert_after(pos, 15);\nfor (int x : tasks) std::cout << x << ' ';" },
+            { "type": "table", "columns": ["操作后", "任务次序"], "rows": [["push_front(10)", "10 20 30"], ["erase_after(pos)", "10 30"], ["insert_after(pos, 15)", "10 15 30"]], "fontSize": "small" },
+            { "type": "text", "content": "pos 指向 10。两个 after 操作针对它后面的位置。", "fontSize": "small" }
+          ],
+          "notes": "头文件 <forward_list>。单向链表适合从前向后遍历。erase_after 要求后面确实有可以删除的元素。来源：https://eel.is/c++draft/forward.list.modifiers 。"
+        },
+        {
+          "title": "forward_list：第一个元素之前的位置",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::forward_list<int> a{10, 20};\na.insert_after(a.before_begin(), 5);\na.erase_after(a.before_begin());\nfor (int x : a) std::cout << x << ' ';" },
+            { "type": "text", "content": "先得到 5 10 20，再删除开头的 5。输出：10 20", "fontSize": "small" },
+            { "type": "list", "fontSize": "small", "items": ["before_begin() 表示第一个元素之前的位置，不能解引用。", "forward_list 没有 size()、back() 或 push_back()。", "需要元素个数时可以遍历统计。"] }
+          ],
+          "notes": "避免将 before_begin 与 begin 混淆。访问 begin 指向首元素，after(before_begin) 才操作首元素。来源：https://eel.is/c++draft/forward.list.overview 与 https://eel.is/c++draft/forward.list.modifiers 。"
+        }
+      ]
+    },
+    {
+      "title": "string 与文字处理",
+      "slides": [
+        {
+          "title": "string：拼接、截取和查找",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::string s = \"nju\";\ns += \" beamer\";\ns[0] = 'N';\nstd::cout << s << '\\n';\nstd::cout << s.substr(0, 3) << '\\n';\nstd::cout << s.find(\"beamer\");" },
+            { "type": "text", "content": "输出：第一行 Nju beamer，第二行 Nju，第三行 4。", "fontSize": "small" },
+            { "type": "text", "content": "substr(起点, 长度) 截取子串。find 返回第一次匹配的起始位置。", "fontSize": "small" }
+          ],
+          "notes": "头文件 <string>。字符用单引号，字符串用双引号。位置从 0 开始，空格也占一个位置。本报告示例使用 ASCII 文本。来源：https://eel.is/c++draft/string.classes 与 https://eel.is/c++draft/string.find 。"
+        },
+        {
+          "title": "读取一个词与读取整行",
+          "blocks": [
+            { "type": "table", "columns": ["同一输入 NJU Beamer", "读取结果"], "rows": [["cin 读取一个词", "NJU"], ["std::getline(std::cin, s)", "NJU Beamer"]], "fontSize": "small" },
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::string line;\nstd::getline(std::cin, line);\nstd::cout << line << '\\n' << line.size();" },
+            { "type": "text", "content": "给上述代码输入 NJU Beamer：第一行输出 NJU Beamer，第二行输出 10。", "fontSize": "small" },
+            { "type": "text", "content": "如果刚用 cin 读过其他内容，输入流中可能还留有换行，应先处理再 getline。", "fontSize": "small" }
+          ],
+          "notes": "表中两种读取是分别运行的结果。代码示例从新输入开始。先 cin >> n 再读取一整行时，可用 cin.ignore(numeric_limits<streamsize>::max(), '\n') 丢弃当前行余下部分，需要 <limits>。getline(cin >> ws, s) 会跳过全部前导空白，适合不需要保留前导空格的输入。来源：https://eel.is/c++draft/string.io 。"
+        },
+        {
+          "title": "查找失败的返回值",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::string s = \"good morning\";\nauto pos = s.find(\"bye\");\nif (pos == std::string::npos) {\n    std::cout << \"not found\";\n} else {\n    std::cout << s.substr(pos);\n}" },
+            { "type": "text", "content": "输出：not found", "fontSize": "small" },
+            { "type": "text", "content": "找到开头时返回 0。没有找到时返回 string::npos，不能直接用 if (pos) 判断。", "fontSize": "small" },
+            { "type": "text", "content": "string 的 size() 统计 char 元素。UTF-8 中文的字节数通常不等于汉字个数。", "fontSize": "small" }
+          ],
+          "notes": "突出 0 也是合法查找结果。npos 是没有匹配的位置标记，不展开整数类型与编码细节。来源：https://eel.is/c++draft/string.find 与 https://eel.is/c++draft/string.classes 。"
+        }
+      ]
+    },
+    {
+      "title": "选择与练习",
+      "slides": [
+        {
+          "title": "几个共用接口",
+          "blocks": [
+            { "type": "table", "columns": ["接口", "作用", "例外"], "rows": [["empty()", "判断是否为空", "本次五种类型都有"], ["size()", "元素个数", "forward_list 没有"], ["clear()", "删除全部元素", "本次五种类型都有"], ["begin()/end()", "访问遍历范围", "end 不能解引用"], ["front()/back()", "访问首尾元素", "forward_list 没有 back"]], "fontSize": "small" },
+            { "type": "text", "content": "调用 front、back 或 pop 之前，要保证相应元素存在。", "fontSize": "small" }
+          ],
+          "notes": "不要将共用接口理解成所有容器都有所有成员。按本报告使用的 C++11 基础范围介绍。来源：https://eel.is/c++draft/sequences 与 https://eel.is/c++draft/string.classes 。"
+        },
+        {
+          "title": "访问与修改的基本边界",
+          "blocks": [
+            { "type": "list", "fontSize": "small", "items": ["下标必须指向已有元素。size()==3 时，最后一个下标是 2。", "v[3]=10 不会给三个元素的 vector 自动添加第四个元素。", "vector、deque、string 的 at() 会检查位置，越界会抛出异常。", "插入或删除后，不要默认旧的位置、引用和迭代器仍然可用。"] },
+            { "type": "text", "content": "初学阶段先把读取与修改分开写，确认每次操作后容器的内容。", "fontSize": "small" }
+          ],
+          "notes": "at 的异常类型为 std::out_of_range。迭代器失效规则因容器和操作不同而不同，不在本报告中逐项展开。list 插入保留已有元素的位置，删除使指向被删元素的迭代器失效。vector 插入可能重新分配存储，删除会影响删除位置及其之后的位置。来源：https://eel.is/c++draft/vector.modifiers 、https://eel.is/c++draft/deque.modifiers 、https://eel.is/c++draft/list.modifiers 。"
+        },
+        {
+          "title": "回到开场的五个任务",
+          "blocks": [
+            { "type": "table", "columns": ["主要需求", "可以先考虑", "理由"], "rows": [["成绩表追加和查询", "vector", "下标访问与尾部追加"], ["从两端进出队伍", "deque", "两端 push/pop"], ["当前歌曲附近修改", "list", "已知位置处插入和删除"], ["单向任务清单", "forward_list", "只向后走与 after 操作"], ["处理一行文字", "string", "直接提供文本接口"]], "fontSize": "small" },
+            { "type": "text", "content": "普通元素序列先考虑 vector。换容器时，应说明具体需要哪一种操作。", "fontSize": "small" }
+          ],
+          "notes": "这是接口层面的选型起点，不能据此断言 list 总比 vector 快。寻找位置、缓存局部性、数据规模都会影响真实性能，本次不展开。"
+        },
+        {
+          "title": "练习一：最后还剩什么",
+          "blocks": [
+            { "type": "code", "language": "C++", "fontSize": "small", "content": "std::vector<int> v(3, 10);\nv.push_back(20);\nv.erase(v.begin() + 1);\nfor (int x : v) std::cout << x << ' ';\nstd::cout << '\\n' << v.size();" },
+            { "type": "text", "content": "请判断输出内容与元素个数。", "fontSize": "normal" },
+            { "type": "text", "content": "如果第一行改成 vector<int> v{3, 10}，答案会怎样变化？", "fontSize": "small" }
+          ],
+          "notes": "留 15 秒让听众手算，下一页给出答案。先确认构造含义，再跟踪追加和删除。"
+        },
+        {
+          "title": "练习一的答案",
+          "blocks": [
+            { "type": "table", "columns": ["步骤", "使用 (3, 10)", "使用 {3, 10}"], "rows": [["构造", "10 10 10", "3 10"], ["追加 20", "10 10 10 20", "3 10 20"], ["删除下标 1", "10 10 20", "3 20"], ["最终元素个数", "3", "2"]], "fontSize": "small" },
+            { "type": "text", "content": "每次操作后，元素的位置可能变化。删除的是当前位置的元素。", "fontSize": "small" }
+          ],
+          "notes": "原程序输出第一行 10 10 20，第二行 3。改成花括号后输出第一行 3 20，第二行 2。"
+        },
+        {
+          "title": "练习二：接口是否存在",
+          "blocks": [
+            { "type": "table", "columns": ["写法", "判断"], "rows": [["vector<int> a，调用 a.push_front(1)", "能否使用？"], ["deque<int> b，读取 b[0]", "非空时能否使用？"], ["list<int> c，读取 c[0]", "能否使用？"], ["forward_list<int> d，调用 d.size()", "能否使用？"], ["string s，判断 s.find(\"x\") == 0", "是否表示没找到？"]], "fontSize": "small" },
+            { "type": "text", "content": "答案：不支持、支持、不支持、不支持、不是。最后一项表示在开头找到。", "fontSize": "small" }
+          ],
+          "notes": "本页答案块作为可编辑讲解材料。若希望现场提问时不显示答案，可在编辑器中隐藏该块，再编译，讲解后取消隐藏。deque 例子的 b 必须非空，其他未指明内容的写法仅用于讨论接口是否存在。"
+        },
+        {
+          "title": "使用顺序容器的基本步骤",
+          "blocks": [
+            { "type": "list", "fontSize": "normal", "items": ["包含头文件，声明元素类型与初始内容。", "按照需求选择尾部、两端或指定位置的操作。", "用下标或遍历访问元素，注意有效范围。", "对文字直接使用 string 的文本接口。"] },
+            { "type": "text", "content": "练习：写一个程序读取若干成绩，存入 vector，再输出平均分和最高分。", "fontSize": "small" }
+          ],
+          "notes": "练习需要处理零个成绩的情况。不要让平均分发生除零，也不要在空容器中查找最大值。最高分可以用遍历求出，不要求介绍额外算法。"
+        },
+        {
+          "title": "参考资料",
+          "blocks": [
+            { "type": "text", "fontSize": "small", "paragraphs": [[{ "text": "《C++ Primer》第 5 版，第 3、9 章", "href": "http://ptgmedia.pearsoncmg.com/images/9780321714114/samplepages/0321714113.pdf" }, { "text": "：作业指定的学习资料。" }], [{ "text": "维基百科：C++ 顺序容器", "href": "https://en.wikipedia.org/wiki/Sequence_container_(C%2B%2B)" }, { "text": "：作业指定的概览资料。" }], [{ "text": "C++ 标准草案：顺序容器", "href": "https://eel.is/c++draft/sequences" }, { "text": "：核对接口与操作约束。" }], [{ "text": "C++ 标准草案：字符串", "href": "https://eel.is/c++draft/string.classes" }, { "text": "：核对 string 接口。" }]] },
+            { "type": "text", "content": "本报告以基础用法为主。代码采用 C++11 语法，不依赖草案中的新版本接口。", "fontSize": "small" }
+          ],
+          "notes": "作业来源：data-structure.tex 的第二个开放课题“C++ STL 中的顺序容器”。课题要求避免过多概念，使同学掌握基础容器用法。草案链接用于接口核对，不要求同学直接阅读整份标准。"
+        }
+      ]
+    }
+  ]
+}

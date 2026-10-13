@@ -14,6 +14,8 @@
 *.xdv
 *.pdf
 !release/tutor.pdf
+!templates/nju/paper/*.pdf
+.tmp/
 app/node_modules/
 app/dist/
 app/dist-cli/

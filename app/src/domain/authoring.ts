@@ -8,6 +8,7 @@ import {
   mathFontPresetSchema,
   texIdentifierSchema,
   themeModeSchema,
+  themeFileSchema,
   type Block,
   type Deck,
   type RichTextDocument,
@@ -15,10 +16,12 @@ import {
   frameOptionsSchema,
   defaultFrameOptions,
   deckSchema,
+  textFontSchema,
 } from "./deck";
 import type { DocumentAsset, SupportedImageMimeType } from "./document";
+import { defaultPageSize, pageSizeSchema } from "./pageSize";
+import { fontSizeSchema } from "./typography";
 
-const fontSizeSchema = z.enum(["normal", "small", "footnotesize", "scriptsize", "tiny"]);
 const packageNameSchema = texIdentifierSchema.min(1);
 const colorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
 const hrefSchema = z.url().refine((value) => ["https:", "http:", "mailto:"].includes(new URL(value).protocol));
@@ -40,10 +43,11 @@ const blockBase = {
   hidden: z.boolean().optional().default(false),
   fontSize: fontSizeSchema.optional().default("normal"),
   appearance: blockAppearanceSchema.optional().default("none"),
+  font: textFontSchema.optional(),
 };
 
 type TextSegment = z.output<typeof textSegmentSchema>;
-type AuthoringBlockBase = { hidden: boolean; fontSize: Block["fontSize"]; appearance: Block["appearance"] };
+type AuthoringBlockBase = { hidden: boolean; fontSize: Block["fontSize"]; appearance: Block["appearance"]; font?: Block["font"] };
 type AuthoringBlock = AuthoringBlockBase & (
   | { type: "text"; content?: string; paragraphs?: TextSegment[][] }
   | { type: "list"; ordered: boolean; reveal: "none" | "overlay-alert" | "pause"; items: string[] }
@@ -75,10 +79,11 @@ const authoringBlockSchema: z.ZodType<AuthoringBlock> = z.lazy(() => z.discrimin
   }),
 ]));
 
-const slideBase = { frame: frameOptionsSchema.partial().optional(), notes: z.string().optional().default("") };
+const slideBase = { hidden: z.boolean().optional(), frame: frameOptionsSchema.partial().optional(), notes: z.string().optional().default("") };
 const titleSlideSchema = z.object({ ...slideBase, kind: z.literal("title"), title: z.string().optional(), blocks: z.array(z.never()).optional() });
 const contentsSlideSchema = z.object({ ...slideBase, kind: z.literal("contents"), title: z.string().optional(), blocks: z.array(z.never()).optional() });
 const contentSlideSchema = z.object({ ...slideBase, kind: z.literal("content").optional().default("content"), title: z.string().optional().default(""), blocks: z.array(authoringBlockSchema).optional().default([]) });
+const endingSlideSchema = z.object({ ...slideBase, kind: z.literal("ending"), title: z.string().optional().default("结尾页"), blocks: z.array(authoringBlockSchema).optional().default([{ type: "text", content: "Thanks", hidden: false, fontSize: "normal", appearance: "none" }]) });
 const mathFontInputSchema = z.object({
   preset: mathFontPresetSchema.optional().default("latin-modern"),
   customName: customMathFontNameSchema.optional().default(""),
@@ -108,6 +113,9 @@ export const authoringSpecSchema = z.object({
     theme: themeInputSchema.optional().default(defaultTheme),
     documentClassOptions: z.string().optional().default(""),
     preamble: z.string().optional().default(""),
+    pageSize: pageSizeSchema.optional().default(defaultPageSize),
+    themeFiles: z.array(themeFileSchema).optional().default([]),
+    themePreamble: z.string().optional().default(""),
     packages: z.array(z.object({ name: packageNameSchema, options: z.string().optional().default("") })).optional().default([]),
     tikzLibraries: z.array(packageNameSchema).optional().default([]),
   }).optional().default({
@@ -117,12 +125,15 @@ export const authoringSpecSchema = z.object({
     theme: defaultTheme,
     documentClassOptions: "",
     preamble: "",
+    pageSize: defaultPageSize,
+    themeFiles: [],
+    themePreamble: "",
     packages: [],
     tikzLibraries: [],
   }),
   sections: z.array(z.object({
     title: z.string().min(1),
-    slides: z.array(z.union([titleSlideSchema, contentsSlideSchema, contentSlideSchema])).min(1),
+    slides: z.array(z.union([titleSlideSchema, contentsSlideSchema, contentSlideSchema, endingSlideSchema])).min(1),
   })).min(1),
 });
 
@@ -167,7 +178,7 @@ export async function composeAuthoringSpec(input: unknown, loadAsset: AssetLoade
         const blocks: Block[] = [];
         for (const [blockIndex, block] of inputBlocks.entries()) {
           const id = `${prefix}-${blockIndex + 1}`;
-          const base = { id, hidden: block.hidden, fontSize: block.fontSize, appearance: block.appearance };
+          const base = { id, hidden: block.hidden, fontSize: block.fontSize, appearance: block.appearance, font: block.font };
           if (block.type === "text") blocks.push({ ...base, type: "text", content: richContent(block.content, block.paragraphs) });
           else if (block.type === "list") blocks.push({ ...base, type: "list", ordered: block.ordered, reveal: block.reveal, items: block.items });
           else if (block.type === "formula") blocks.push({ ...base, type: "formula", latex: block.latex, layout: block.layout, numbered: block.numbered });
@@ -197,7 +208,7 @@ export async function composeAuthoringSpec(input: unknown, loadAsset: AssetLoade
         }
         return blocks;
       };
-      const blocks = slide.kind === "content" ? await composeBlocks(slide.blocks, `block-${sectionIndex + 1}-${slideIndex + 1}`) : [];
+      const blocks = slide.kind === "content" || slide.kind === "ending" ? await composeBlocks(slide.blocks, `block-${sectionIndex + 1}-${slideIndex + 1}`) : [];
       slides.push({
         id: `slide-${sectionIndex + 1}-${slideIndex + 1}`,
         title: slide.title ?? "",
@@ -205,6 +216,7 @@ export async function composeAuthoringSpec(input: unknown, loadAsset: AssetLoade
         blocks,
         frame: { ...defaultFrameOptions, ...slide.frame },
         notes: slide.notes,
+        hidden: slide.hidden,
       });
     }
     sections.push({ id: `section-${sectionIndex + 1}`, title: section.title, slides });
@@ -212,7 +224,7 @@ export async function composeAuthoringSpec(input: unknown, loadAsset: AssetLoade
 
   return {
     deck: deckSchema.parse({
-      formatVersion: 4,
+      formatVersion: 5,
       metadata: spec.metadata,
       settings: spec.settings,
       sections,

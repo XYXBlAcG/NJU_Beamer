@@ -1,0 +1,22 @@
+import { execFileSync } from "node:child_process";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve, join } from "node:path";
+
+const { tikzEditor: { revision, repository: upstream } } = JSON.parse(readFileSync(resolve("verification/vendor/sources.json"), "utf8"));
+const root = mkdtempSync(join(tmpdir(), "njub-tikz-vendor-"));
+const repository = join(root, "upstream");
+execFileSync("gh", ["repo", "clone", upstream, repository], { stdio: "inherit" });
+execFileSync("git", ["checkout", "--detach", revision], { cwd: repository, stdio: "inherit" });
+execFileSync("npm", ["ci", "--ignore-scripts"], { cwd: repository, stdio: "inherit" });
+execFileSync("npm", ["run", "generate:grammar"], { cwd: repository, stdio: "inherit" });
+execFileSync("npm", ["run", "build"], { cwd: repository, stdio: "inherit" });
+const main = join(repository, "apps/web/src/main.tsx");
+const source = readFileSync(main, "utf8").replace("setActiveEditorPlatform(createBrowserPlatformAdapter());", "const platform = createBrowserPlatformAdapter();\n  const values = new Map<string, string>();\n  platform.persistence = { load: (key) => values.get(key) ?? null, save: (key, value) => { values.set(key, value); } };\n  setActiveEditorPlatform(platform);").replace('const { App } = await import("@tikz-editor/app");', 'const { App } = await import("@tikz-editor/app");\n  await import("./njub-bridge");');
+writeFileSync(main, source);
+cpSync(resolve("verification/vendor/njub-bridge.ts"), join(repository, "apps/web/src/njub-bridge.ts"));
+execFileSync("npx", ["vite", "build", "--base", "/tikz-editor/"], { cwd: join(repository, "apps/web"), stdio: "inherit" });
+const output = resolve("public/tikz-editor");
+rmSync(output, { recursive: true, force: true });
+cpSync(join(repository, "apps/web/dist"), output, { recursive: true });
+cpSync(join(repository, "LICENSE"), resolve("public/tikz-editor/LICENSE"));

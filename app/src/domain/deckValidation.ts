@@ -21,7 +21,7 @@ const inspectBlocks = (slideId: string, blocks: Block[]): DeckDiagnostic[] => bl
   ...(block.type === "columns" ? block.columns.flatMap((column) => inspectBlocks(slideId, column.blocks)) : []),
 ]);
 
-export const validateDeckContent = (deck: Deck): DeckDiagnostic[] => deck.sections.flatMap((section) => section.slides.flatMap((slide) => [
+export const validateDeckContent = (deck: Deck): DeckDiagnostic[] => deck.sections.flatMap((section) => section.slides.filter((slide) => !slide.hidden).flatMap((slide) => [
   ...parseMixedText(slide.notes).issues.map((issue) => ({ slideId: slide.id, message: `备注：${issue.message}（字符 ${issue.offset + 1}）` })),
   ...inspectBlocks(slide.id, slide.blocks),
 ]));

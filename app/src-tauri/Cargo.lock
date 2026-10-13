@@ -1912,10 +1912,16 @@ checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
 name = "nju-beamer-editor"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
+ "core-graphics",
+ "foreign-types",
+ "objc2",
+ "objc2-app-kit",
+ "png 0.18.1",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",

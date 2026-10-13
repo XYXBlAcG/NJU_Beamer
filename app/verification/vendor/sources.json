@@ -1,0 +1,4 @@
+{
+  "tikzEditor": { "repository": "DominikPeters/tikz-editor", "revision": "f0853344cd2797d9121fa6202be12d6b0d2c53f4", "license": "MIT" },
+  "njuThesis": { "repository": "nju-lug/NJUThesis", "revision": "b00ef4c13c0e6545a9ce36bb5b2ef019adab59d1", "version": "1.5.1", "license": "LPPL-1.3c" }
+}

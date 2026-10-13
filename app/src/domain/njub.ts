@@ -1,30 +1,21 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import { deckSchema, type Deck } from "./deck";
-import { documentJson, referencedAssetPaths, referencedAssets, type DocumentAsset, type SupportedImageMimeType } from "./document";
-
-const assetPathPattern = /^pic\/[^/]+\.(png|jpe?g)$/i;
+import { deckSchema } from "./deck";
+import { paperSchema } from "./paper";
+import type { DocumentContent, NjubArchive } from "./document";
+import { assetPathPattern, documentAssetSchema, documentJson, referencedAssetPaths, referencedAssets, type DocumentAsset, type SupportedImageMimeType } from "./document";
 
 const mimeTypeFor = (path: string): SupportedImageMimeType => path.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
 
-const validateAsset = (asset: DocumentAsset) => {
-  if (!assetPathPattern.test(asset.path)) throw new Error(`无效的图片资源路径：${asset.path}`);
-  if (asset.mimeType !== mimeTypeFor(asset.path)) throw new Error(`图片类型与扩展名不一致：${asset.path}`);
-  const bytes = asset.content;
-  const png = [137, 80, 78, 71, 13, 10, 26, 10].every((value, index) => bytes[index] === value);
-  const jpeg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
-  if ((asset.mimeType === "image/png" && !png) || (asset.mimeType === "image/jpeg" && !jpeg)) throw new Error(`图片内容与类型不一致：${asset.path}`);
-};
-
-const ensureReferencedAssets = (deck: Deck, assets: DocumentAsset[]) => {
+const ensureReferencedAssets = (deck: DocumentContent, assets: DocumentAsset[]) => {
   const available = new Set(assets.map((asset) => asset.path));
   const missing = [...referencedAssetPaths(deck)].filter((path) => !available.has(path));
   if (missing.length) throw new Error(`缺少图片资源：${[...new Set(missing)].join(", ")}`);
 };
 
-export const encodeNjub = (input: Deck, inputAssets: DocumentAsset[]): Uint8Array => {
-  const deck = deckSchema.parse(input);
+export const encodeNjub = (input: DocumentContent, inputAssets: DocumentAsset[]): Uint8Array => {
+  const deck = "kind" in input ? paperSchema.parse(input) : deckSchema.parse(input);
   const assets = referencedAssets(deck, inputAssets).sort((left, right) => left.path.localeCompare(right.path));
-  assets.forEach(validateAsset);
+  assets.forEach((asset) => documentAssetSchema.parse(asset));
   ensureReferencedAssets(deck, assets);
   const entries: Record<string, Uint8Array> = {
     "document.json": strToU8(documentJson(deck)),
@@ -34,7 +25,7 @@ export const encodeNjub = (input: Deck, inputAssets: DocumentAsset[]): Uint8Arra
   return zipSync(entries, { level: 6 });
 };
 
-export const decodeNjub = (content: Uint8Array): { deck: Deck; assets: DocumentAsset[] } => {
+export const decodeNjub = (content: Uint8Array): NjubArchive => {
   let entries: Record<string, Uint8Array>;
   try {
     entries = unzipSync(content);
@@ -46,9 +37,10 @@ export const decodeNjub = (content: Uint8Array): { deck: Deck; assets: DocumentA
   }
   const document = entries["document.json"];
   if (!document) throw new Error("文稿中缺少 document.json");
-  let deck: Deck;
+  let deck: DocumentContent;
   try {
-    deck = deckSchema.parse(JSON.parse(strFromU8(document)));
+    const value = JSON.parse(strFromU8(document));
+    deck = value?.kind === "paper" ? paperSchema.parse(value) : deckSchema.parse(value);
   } catch (error) {
     throw new Error(`document.json 无效：${error instanceof Error ? error.message : String(error)}`);
   }
@@ -56,12 +48,12 @@ export const decodeNjub = (content: Uint8Array): { deck: Deck; assets: DocumentA
     .filter(([path]) => assetPathPattern.test(path))
     .map(([path, bytes]) => ({ path, mimeType: mimeTypeFor(path), content: Array.from(bytes) }))
     .sort((left, right) => left.path.localeCompare(right.path));
-  assets.forEach(validateAsset);
+  assets.forEach((asset) => documentAssetSchema.parse(asset));
   ensureReferencedAssets(deck, assets);
-  return { deck, assets };
+  return "kind" in deck ? { paper: deck, assets } : { deck, assets };
 };
 
-export const documentSummary = (deck: Deck, assets: DocumentAsset[]) => ({
+export const documentSummary = (deck: DocumentContent, assets: DocumentAsset[]) => "kind" in deck ? ({ kind: "paper", formatVersion: deck.formatVersion, title: deck.metadata.title, sections: deck.sections.length, blocks: deck.sections.reduce((count, section) => count + section.blocks.length, 0), assets: assets.length }) : ({
   formatVersion: deck.formatVersion,
   title: deck.metadata.title,
   sections: deck.sections.length,

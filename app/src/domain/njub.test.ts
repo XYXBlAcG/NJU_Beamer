@@ -2,14 +2,19 @@ import { strToU8, zipSync } from "fflate";
 import { describe, expect, it } from "vitest";
 import { createDefaultDeck } from "./deck";
 import { decodeNjub, encodeNjub } from "./njub";
+import { createDefaultPaper } from "./paper";
 
 describe("NJUB archive codec", () => {
+  it("preserves the paper discriminator and shared assets", () => {
+    const paper = createDefaultPaper();
+    expect(decodeNjub(encodeNjub(paper, []))).toEqual({ paper, assets: [] });
+  });
   it("round trips the canonical document", () => {
     const deck = createDefaultDeck();
     const encoded = encodeNjub(deck, []);
     const decoded = decodeNjub(encoded);
 
-    expect(decoded.deck).toEqual(deck);
+    expect("deck" in decoded && decoded.deck).toEqual(deck);
     expect(decoded.assets).toEqual([]);
   });
 
